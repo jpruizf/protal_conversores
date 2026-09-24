@@ -122,6 +122,10 @@ body {
         transform 0.2s ease;
 }
 
+#zonaArchivoExcel {
+    margin-top: 1.5rem;
+}
+
 .zona-archivo:hover {
     background: #fff3eb;
     border-color: #cc6228;
@@ -176,7 +180,8 @@ body {
     width: 100%;
     max-width: 100%;
 
-    margin-top: 16px;
+    margin-top: 0.75rem;
+    margin-bottom: 0.75rem;
 
     padding: 12px 14px;
 
@@ -367,44 +372,6 @@ body {
 
 }
 
-
-/* =========================================================
-   INFORMACIÓN INFERIOR
-========================================================= */
-
-.informacion {
-    width: 100%;
-
-    margin-top: 30px;
-
-    padding: 20px;
-
-    background: #f8f4f4;
-
-    border-left: 5px solid #e77834;
-    border-radius: 10px;
-}
-
-.informacion h3 {
-    margin: 0 0 12px;
-
-    font-size: 20px;
-
-    color: #4e4040;
-}
-
-.informacion p {
-    margin: 8px 0;
-
-    font-size: 15px;
-    line-height: 1.5;
-
-    color: #6f6262;
-
-    overflow-wrap: anywhere;
-}
-
-
 /* =========================================================
    LOGOS
 ========================================================= */
@@ -443,6 +410,7 @@ footer {
     background-color: #000;
 
     color: #fff;
+
 }
 
 .interredes-logo-alt {

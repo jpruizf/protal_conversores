@@ -3,18 +3,30 @@ const archivoPDF =
         "archivoPDF"
     );
 
-
-const archivoSeleccionado =
+const archivoExcel =
     document.getElementById(
-        "archivoSeleccionado"
+        "archivoExcel"
     );
 
+const pdfSeleccionados =
+    document.getElementById(
+        "pdfSeleccionados"
+    );
+
+const excelSeleccionado =
+    document.getElementById(
+        "excelSeleccionado"
+    );
 
 const btnConvertir =
     document.getElementById(
         "btnConvertir"
     );
 
+const spinnerContenedor =
+    document.getElementById(
+        "spinnerContenedor"
+    );
 
 const estado =
     document.getElementById(
@@ -22,271 +34,259 @@ const estado =
     );
 
 
-const spinnerContenedor =
-    document.getElementById(
-        "spinnerContenedor"
-    );
+/**
+ * Limpia mensajes y estados visuales.
+ */
+function limpiarEstado() {
+    estado.textContent = "";
 
-
-const zonaArchivo =
-    document.getElementById(
-        "zonaArchivo"
+    estado.classList.remove(
+        "exito",
+        "error"
     );
+}
 
 
 /**
- * ============================================================
- * FUNCIONES DE ESTADO
- * ============================================================
+ * Muestra u oculta el spinner.
  */
+function mostrarSpinner(mostrar) {
+    if (mostrar) {
+        spinnerContenedor
+            .classList
+            .remove("oculto");
+    }
+    else {
+        spinnerContenedor
+            .classList
+            .add("oculto");
+    }
+}
 
+
+/**
+ * Muestra un mensaje de estado.
+ */
 function mostrarEstado(
     mensaje,
     tipo = ""
 ) {
-
     estado.textContent =
         mensaje;
 
-
-    estado.className =
-        "estado";
-
+    estado.classList.remove(
+        "exito",
+        "error"
+    );
 
     if (tipo) {
-
         estado.classList.add(
             tipo
         );
-
     }
-
-}
-
-
-function limpiarEstado() {
-
-    estado.textContent =
-        "";
-
-    estado.className =
-        "estado";
-
-}
-
-
-function mostrarSpinner() {
-
-    spinnerContenedor.classList.remove(
-        "oculto"
-    );
-
-}
-
-
-function ocultarSpinner() {
-
-    spinnerContenedor.classList.add(
-        "oculto"
-    );
-
 }
 
 
 /**
- * ============================================================
- * SELECCIÓN DE ARCHIVO
- * ============================================================
+ * Actualiza la lista de PDF seleccionados.
  */
-
 archivoPDF.addEventListener(
     "change",
     () => {
 
-        const archivos =
-            archivoPDF.files;
-
-
         limpiarEstado();
 
-
-        if (
-            !archivos ||
-            archivos.length === 0
-        ) {
-
-            archivoSeleccionado.textContent =
-                "Ningún archivo seleccionado";
-
-            return;
-
-        }
-
-
-        archivoSeleccionado.innerHTML =
-            Array.from(
-                archivos
-            )
-            .map(
-                archivo =>
-                    archivo.name
-            )
-            .join("<br>");
-
-    }
-);
-
-
-
-/**
- * ============================================================
- * ARRASTRAR ARCHIVO
- * ============================================================
- */
-
-zonaArchivo.addEventListener(
-    "dragover",
-    evento => {
-
-        evento.preventDefault();
-
-
-        zonaArchivo.classList.add(
-            "arrastrando"
-        );
-
-    }
-);
-
-
-zonaArchivo.addEventListener(
-    "dragleave",
-    () => {
-
-        zonaArchivo.classList.remove(
-            "arrastrando"
-        );
-
-    }
-);
-
-
-zonaArchivo.addEventListener(
-    "drop",
-    evento => {
-
-        evento.preventDefault();
-
-
-        zonaArchivo.classList.remove(
-            "arrastrando"
-        );
-
-
         const archivos =
-            evento.dataTransfer.files;
-
-
-        if (
-            !archivos ||
-            archivos.length === 0
-        ) {
-            return;
-        }
-
-
-        const archivo =
-            archivos[0];
-
-
-        if (
-            archivo.type !==
-            "application/pdf"
-        ) {
-
-            mostrarEstado(
-                "El archivo seleccionado no es un PDF.",
-                "error"
+            Array.from(
+                archivoPDF.files
             );
 
-            return;
 
+        if (
+            archivos.length === 0
+        ) {
+            pdfSeleccionados
+                .textContent =
+                "Ningún PDF seleccionado";
+
+            return;
         }
 
 
-        const transferencia =
-            new DataTransfer();
+        if (
+            archivos.length === 1
+        ) {
+            pdfSeleccionados
+                .textContent =
+                archivos[0].name;
+
+            return;
+        }
 
 
-        transferencia.items.add(
-            archivo
-        );
-
-
-        archivoPDF.files =
-            transferencia.files;
-
-
-        archivoSeleccionado.textContent =
-            archivo.name;
-
-
-        limpiarEstado();
-
+        pdfSeleccionados
+            .textContent =
+            `${archivos.length} archivos PDF seleccionados`;
     }
 );
 
 
 /**
- * ============================================================
- * CONVERSIÓN
- * ============================================================
+ * Actualiza el Excel seleccionado.
  */
+archivoExcel.addEventListener(
+    "change",
+    () => {
 
+        limpiarEstado();
+
+        const archivo =
+            archivoExcel.files[0];
+
+
+        if (!archivo) {
+            excelSeleccionado
+                .textContent =
+                "Ningún Excel seleccionado";
+
+            return;
+        }
+
+
+        excelSeleccionado
+            .textContent =
+            archivo.name;
+    }
+);
+
+
+/**
+ * Convierte los archivos.
+ */
 btnConvertir.addEventListener(
     "click",
     async () => {
 
-        const archivos = archivoPDF.files;
+        limpiarEstado();
 
 
-        if (!archivos || archivos.length === 0 ) {
-
-            mostrarEstado (
-                "Seleccioná al menos un archivo PDF.","error"
+        const archivosPDF =
+            Array.from(
+                archivoPDF.files
             );
+
+        const excel =
+            archivoExcel.files[0];
+
+
+        /**
+         * Validaciones.
+         */
+        if (
+            archivosPDF.length === 0
+        ) {
+            mostrarEstado(
+                "Seleccioná al menos un archivo PDF de comisiones.",
+                "error"
+            );
+
             return;
-
-        }   
-
-
-        const formData = new FormData();
-
-
-        for (const archivo of archivos) {
-
-            formData.append(
-                "archivoPDF",
-                archivo
-            );
-
         }
 
 
-        try{
-
-            btnConvertir.disabled =
-                true;
-
-
-            mostrarSpinner();
-
-
+        if (!excel) {
             mostrarEstado(
-                "Procesando resumen...",
-                "procesando"
+                "Seleccioná el archivo Excel de liquidaciones.",
+                "error"
             );
 
+            return;
+        }
+
+
+        /**
+         * Validamos PDF.
+         */
+        const pdfInvalido =
+            archivosPDF.find(
+                archivo =>
+                    archivo.type !==
+                    "application/pdf"
+            );
+
+
+        if (pdfInvalido) {
+            mostrarEstado(
+                `El archivo "${pdfInvalido.name}" no es un PDF válido.`,
+                "error"
+            );
+
+            return;
+        }
+
+
+        /**
+         * Validamos Excel.
+         */
+        const extensionExcel =
+            excel.name
+                .split(".")
+                .pop()
+                .toLowerCase();
+
+
+        if (
+            extensionExcel !==
+            "xlsx"
+        ) {
+            mostrarEstado(
+                "El archivo de liquidaciones debe tener formato .xlsx.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        /**
+         * Preparamos los archivos.
+         */
+        const formData =
+            new FormData();
+
+
+        archivosPDF.forEach(
+            archivo => {
+
+                formData.append(
+                    "archivoPDF",
+                    archivo
+                );
+            }
+        );
+
+
+        formData.append(
+            "archivoExcel",
+            excel
+        );
+
+
+        /**
+         * Bloqueamos el botón
+         * mientras procesa.
+         */
+        btnConvertir.disabled =
+            true;
+
+        mostrarSpinner(true);
+
+        mostrarEstado(
+            "Procesando archivos..."
+        );
+
+
+        try {
 
             const respuesta =
                 await fetch(
@@ -301,86 +301,56 @@ btnConvertir.addEventListener(
                 );
 
 
-            if (
-                !respuesta.ok
-            ) {
+            /**
+             * Si hubo error,
+             * intentamos leer el JSON
+             * devuelto por el servidor.
+             */
+            if (!respuesta.ok) {
 
-                let mensaje =
-                    "Error al procesar el archivo.";
+                let mensajeError =
+                    "Ocurrió un error al procesar los archivos.";
 
 
                 try {
-
-                    const error =
+                    const datosError =
                         await respuesta.json();
 
-
                     if (
-                        error &&
-                        error.error
+                        datosError &&
+                        datosError.error
                     ) {
-
-                        mensaje =
-                            error.error;
-
+                        mensajeError =
+                            datosError.error;
                     }
-
                 }
                 catch {
-
-                    // Se mantiene mensaje genérico.
-
+                    /*
+                     * Si la respuesta no es JSON,
+                     * mantenemos el mensaje genérico.
+                     */
                 }
 
 
                 throw new Error(
-                    mensaje
+                    mensajeError
                 );
-
             }
 
 
+            /**
+             * Convertimos la respuesta
+             * en archivo descargable.
+             */
             const blob =
                 await respuesta.blob();
 
 
-            const contentDisposition =
-                respuesta.headers.get(
-                    "Content-Disposition"
-                );
-
-
-            let nombreArchivo =
-                "Resumen_Visa_Galicia.xlsx";
-
-
-            if (
-                contentDisposition
-            ) {
-
-                const match =
-                    contentDisposition.match(
-                        /filename="([^"]+)"/i
-                    );
-
-
-                if (
-                    match &&
-                    match[1]
-                ) {
-
-                    nombreArchivo =
-                        match[1];
-
-                }
-
-            }
-
-
             const url =
-                URL.createObjectURL(
-                    blob
-                );
+                window.URL
+                    .createObjectURL(
+                        blob
+                    );
 
 
             const enlace =
@@ -392,14 +362,14 @@ btnConvertir.addEventListener(
             enlace.href =
                 url;
 
-
             enlace.download =
-                nombreArchivo;
+                "Resumen_Comisiones_Conciliado.xlsx";
 
 
-            document.body.appendChild(
-                enlace
-            );
+            document.body
+                .appendChild(
+                    enlace
+                );
 
 
             enlace.click();
@@ -408,55 +378,60 @@ btnConvertir.addEventListener(
             enlace.remove();
 
 
-            URL.revokeObjectURL(
-                url
-            );
+            window.URL
+                .revokeObjectURL(
+                    url
+                );
 
 
             mostrarEstado(
-                "Conversión completada correctamente.",
+                "Proceso completado correctamente.",
                 "exito"
             );
 
 
             /**
-             * Limpieza para permitir
-             * seleccionar nuevamente
-             * incluso el mismo archivo.
+             * Limpiamos inputs para permitir
+             * una nueva conversión sin
+             * recargar la página.
              */
             archivoPDF.value =
                 "";
 
+            archivoExcel.value =
+                "";
 
-            archivoSeleccionado.textContent =
-                "Ningún archivo seleccionado";
+
+            pdfSeleccionados
+                .textContent =
+                "Ningún PDF seleccionado";
+
+
+            excelSeleccionado
+                .textContent =
+                "Ningún Excel seleccionado";
 
         }
-        catch (
-            error
-        ) {
+        catch (error) {
 
             console.error(
+                "[ERROR]",
                 error
             );
 
 
             mostrarEstado(
                 error.message ||
-                "Error al procesar el resumen.",
+                "Ocurrió un error durante la conversión.",
                 "error"
             );
-
         }
         finally {
 
-            ocultarSpinner();
-
+            mostrarSpinner(false);
 
             btnConvertir.disabled =
                 false;
-
         }
-
     }
 );

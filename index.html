@@ -10,19 +10,28 @@
     >
 
     <title>
-        Resumen VISA Galicia a Excel
+        Resumen Comisiones Pago Fácil
     </title>
 
     <link
         rel="stylesheet"
         href="./style.css"
     >
-    <link rel="icon" href="./logo.png" type="image/png">
+
+    <link
+        rel="icon"
+        href="./logo.png"
+        type="image/png"
+    >
 </head>
 
 <body>
 
-    <img class="inter-logo" src="./Logo tipo.jpg" alt="interredes-logo-alt">
+    <img
+        class="inter-logo"
+        src="./Logo tipo.jpg"
+        alt="interredes-logo-alt"
+    >
 
     <main class="contenedor">
 
@@ -31,29 +40,31 @@
             <header class="encabezado">
 
                 <h1>
-                    Resumen VISA Galicia → Excel
+                    Resumen Comisiones Pago Fácil → Excel
                 </h1>
 
                 <p>
-                    Seleccioná un resumen PDF de Tarjeta Crédito VISA BUSINESS
-                    para convertirlo a Excel.
+                    Seleccioná los reportes PDF de comisiones
+                    y el archivo Excel de liquidaciones.
                 </p>
 
             </header>
 
 
+            <!-- PDF COMISIONES -->
+
             <label
                 for="archivoPDF"
                 class="zona-archivo"
-                id="zonaArchivo"
+                id="zonaArchivoPDF"
             >
 
                 <h2>
-                    Seleccionar archivo PDF
+                    Seleccionar reportes de comisiones
                 </h2>
 
                 <p>
-                    Hacé clic aquí para elegir el resumen
+                    Hacé clic aquí para elegir uno o varios archivos
                 </p>
 
                 <p>
@@ -71,12 +82,51 @@
 
 
             <div
-                id="archivoSeleccionado"
+                id="pdfSeleccionados"
                 class="nombre-archivo"
             >
-                Ningún archivo seleccionado
+                Ningún PDF seleccionado
             </div>
 
+
+            <!-- EXCEL LIQUIDACIONES -->
+
+            <label
+                for="archivoExcel"
+                class="zona-archivo"
+                id="zonaArchivoExcel"
+            >
+
+                <h2>
+                    Seleccionar resumen de liquidaciones
+                </h2>
+
+                <p>
+                    Hacé clic aquí para elegir el archivo
+                </p>
+
+                <p>
+                    Formato permitido: Excel (.xlsx)
+                </p>
+
+                <input
+                    type="file"
+                    id="archivoExcel"
+                    accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                >
+
+            </label>
+
+
+            <div
+                id="excelSeleccionado"
+                class="nombre-archivo"
+            >
+                Ningún Excel seleccionado
+            </div>
+
+
+            <!-- ACCIONES -->
 
             <div class="acciones">
 
@@ -85,11 +135,13 @@
                     id="btnConvertir"
                     class="boton-principal"
                 >
-                    Convertir a Excel
+                    Generar Excel
                 </button>
 
             </div>
 
+
+            <!-- SPINNER -->
 
             <div
                 id="spinnerContenedor"
@@ -101,43 +153,30 @@
             </div>
 
 
+            <!-- ESTADO -->
+
             <div
                 id="estado"
                 class="estado"
             ></div>
 
-
-            <section class="informacion">
-
-                <h3>
-                    Información
-                </h3>
-
-                <p>
-                    El sistema procesa resúmenes VISA BUSINESS del Banco Galicia.
-                </p>
-
-                <p>
-                    Se detectan consumos, impuestos, comisiones,
-                    importes en pesos y dólares.
-                </p>
-
-                <p>
-                    El Excel se genera según el mes de facturación del resumen.
-                </p>
-
-            </section>
-
         </section>
 
     </main>
 
-</body>
-<footer>
-    <img class="interredes-logo-alt" src="./interredes-logo-alt.png" alt="interredes">
 
-    
-    <script src="./script.js"></script>
-</footer>
+    <footer>
+
+        <img
+            class="interredes-logo-alt"
+            src="./interredes-logo-alt.png"
+            alt="interredes"
+        >
+
+        <script src="./script.js"></script>
+
+    </footer>
+
+</body>
 
 </html>
