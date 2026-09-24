@@ -1,18 +1,16 @@
 {
-  "name": "pdf-a-excel-resumen-comisiones",
+  "name": "conversor-liquidacion-tarjetas",
   "version": "1.0.0",
-  "description": "Conversor de Resumen de Comisiones Pago Fácil PDF a Excel",
+  "description": "Conversor PDF a Excel de liquidaciones de tarjetas",
   "main": "server.js",
-
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
+    "start": "node server.js"
   },
-
+  "private": true,
   "dependencies": {
+    "exceljs": "^4.4.0",
     "express": "^5.2.1",
-    "multer": "^2.2.0",
-    "pdf-parse": "^2.4.5",
-    "xlsx": "^0.18.5"
+    "multer": "^2.3.0",
+    "pdfjs-dist": "^5.6.205"
   }
 }
