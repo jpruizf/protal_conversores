@@ -1,5 +1,5 @@
 {
-  "name": "pdf_resumen_visa_galicia",
+  "name": "pdf_a_excel_resumen_comisiones_pago_facil",
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
