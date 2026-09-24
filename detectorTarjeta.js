@@ -1,54 +1,34 @@
-const TIPOS_TARJETA = {
-    CREDITO: "CREDITO",
-    DEBITO: "DEBITO",
-    DESCONOCIDO: "DESCONOCIDO"
-};
-
-
 /**
- * Normaliza texto para facilitar la detección.
+ * Detecta el formato del archivo de tarjetas
+ * basándose en el contenido de la cabecera.
  */
-function normalizarTexto(texto) {
-    return String(texto || "")
-        .toUpperCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/\s+/g, " ")
-        .trim();
-}
+function detectarFormato(primeraLinea) {
+    if (!primeraLinea) {
+        return 'RDEBLIQD';
+    }
 
+    if (primeraLinea.includes('LDEBLIQD')) {
+        return 'LDEBLIQD';
+    }
 
-/**
- * Detecta si el resumen corresponde
- * a tarjeta de crédito o débito.
- *
- * @param {String} contenidoPDF
- * @returns {String}
- */
-function detectarTipoTarjeta(contenidoPDF) {
-    const texto = normalizarTexto(contenidoPDF);
-
-    if (
-        texto.includes(
-            "TARJETA DE CREDITO PESOS"
-        )
-    ) {
-        return TIPOS_TARJETA.CREDITO;
+    if (primeraLinea.includes('RDEBLIQD')) {
+        return 'RDEBLIQD';
     }
 
     if (
-        texto.includes(
-            "TARJETA DE DEBITO PESOS"
-        )
+        primeraLinea.includes('RDEBLIQC') ||
+        primeraLinea.includes('DEBLIQC')
     ) {
-        return TIPOS_TARJETA.DEBITO;
+        return 'DEBLIQC';
     }
 
-    return TIPOS_TARJETA.DESCONOCIDO;
-}
+    if (primeraLinea.includes('LIQC')) {
+        return 'LIQC';
+    }
 
+    return 'RDEBLIQD';
+}
 
 module.exports = {
-    TIPOS_TARJETA,
-    detectarTipoTarjeta
+    detectarFormato
 };

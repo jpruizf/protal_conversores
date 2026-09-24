@@ -1,208 +1,469 @@
-const XLSX = window.XLSX;
+const ExcelJS = require('exceljs');
 
-export function generarExcelWeb(
-    datos,
-    resumenReporte = null,
-    nombreArchivo = "Reporte_Pagos_Link.xlsx"
+
+/**
+ * Genera el archivo Excel a partir de los registros
+ * ya parseados por parserTarjetas.js.
+ *
+ * @param {Array} registros
+ * @param {String} selectedFormat
+ * @returns {Promise<Buffer>}
+ */
+async function generarExcelTarjetas(
+    registros,
+    selectedFormat
 ) {
-    console.log("Entró a generarExcelWeb");
+    const workbook =
+        new ExcelJS.Workbook();
 
-    if (!XLSX) {
-        throw new Error(
-            "No se pudo cargar la librería XLSX. Verificá la conexión o el archivo local de la librería."
+    const worksheet =
+        workbook.addWorksheet(
+            'Datos Bancarios'
         );
-    }
 
-    if (!Array.isArray(datos) || datos.length === 0) {
-        throw new Error("No hay registros para exportar.");
-    }
 
-    const datosMapeados = datos.map((registro) => ({
-        "FECHA": registro.fecha || "",
-        "BANCO EMISOR": registro.bancoEmisor || "",
-        "CANTIDAD": registro.cantidad || 0,
-        "IMP. A COBRAR": registro.importeCobrar || 0,
-        "COMISIONES PAGADAS": registro.comisionesPagadas || 0,
-        "IVA COMISIONES": registro.ivaComisiones || 0,
-        "PERCEPCION": registro.percepcion || 0,
-        "RETENCION IVA": registro.retencionIVA || 0,
-        "RETENCION GANANCIAS": registro.retencionGanancias || 0,
-        "RETENCION IIBB": registro.retencionIIBB || 0,
-        "IMPORTE NETO": registro.importeNeto || 0
-    }));
-
-    const worksheet = XLSX.utils.json_to_sheet(datosMapeados);
-
-    /*
-     * Agregar resumen al final de la tabla.
+    /**
+     * Formatos de débito.
      */
-    if (resumenReporte) {
-        let filaActual = datosMapeados.length + 3;
+    const esFormatoDebito =
+        selectedFormat === 'RDEBLIQD' ||
+        selectedFormat === 'LDEBLIQD';
 
-        const filasResumen = [
-            [],
-            ["RESUMEN DEL REPORTE"],
-            ["Fecha", resumenReporte.fecha || ""]
+
+    /**
+     * Estilos.
+     */
+    const styles = {
+        headerFill: {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: {
+                argb: 'FF2A4B7C'
+            }
+        },
+
+        headerFont: {
+            name: 'Segoe UI',
+            size: 11,
+            bold: true,
+            color: {
+                argb: 'FFFFFFFF'
+            }
+        },
+
+        zebraFill: {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: {
+                argb: 'FFF4F7FC'
+            }
+        },
+
+        border: {
+            style: 'thin',
+            color: {
+                argb: 'FFD9D9D9'
+            }
+        }
+    };
+
+
+    /**
+     * ============================================================
+     * COLUMNAS
+     * ============================================================
+     */
+    if (selectedFormat === 'DEBLIQC') {
+
+        /**
+         * VISA CRÉDITO - RDEBLIQC
+         */
+        worksheet.columns = [
+            {
+                header: 'Registro',
+                key: 'type',
+                width: 12
+            },
+            {
+                header: 'Banco',
+                key: 'codigo_banco',
+                width: 10
+            },
+            {
+                header: 'Casa',
+                key: 'codigo_casa',
+                width: 10
+            },
+            {
+                header: 'Lote',
+                key: 'numero_lote',
+                width: 12
+            },
+            {
+                header: 'Cód. Transacción',
+                key: 'codigo_transaccion',
+                width: 18
+            },
+            {
+                header: 'Nro. Establecimiento',
+                key: 'numero_establecimiento',
+                width: 22
+            },
+            {
+                header: 'Tarjeta / Token',
+                key: 'tarjeta_token',
+                width: 24
+            },
+            {
+                header: 'Nro. Cupón',
+                key: 'numero_cupon',
+                width: 16
+            },
+            {
+                header: 'Fecha Origen',
+                key: 'fecha_proc',
+                width: 14
+            },
+            {
+                header: 'Cód. Autorización',
+                key: 'codigo_autorizacion',
+                width: 18
+            },
+            {
+                header: 'Importe',
+                key: 'monto_1',
+                width: 16
+            },
+            {
+                header: 'Cuotas',
+                key: 'cuotas',
+                width: 10
+            },
+            {
+                header: 'Identificador',
+                key: 'identificador',
+                width: 22
+            },
+            {
+                header: 'Nro. Cuenta',
+                key: 'numero_cuenta',
+                width: 18
+            },
+            {
+                header: 'Estado',
+                key: 'estado_movimiento',
+                width: 10
+            },
+            {
+                header: 'Cód. Motivo 1',
+                key: 'codigo_motivo_1',
+                width: 14
+            },
+            {
+                header: 'Descripción Motivo 1',
+                key: 'descripcion_motivo_1',
+                width: 35
+            },
+            {
+                header: 'Cód. Motivo 2',
+                key: 'codigo_motivo_2',
+                width: 14
+            },
+            {
+                header: 'Descripción Motivo 2',
+                key: 'descripcion_motivo_2',
+                width: 35
+            }
         ];
 
-        if (resumenReporte.totales) {
-            filasResumen.push(
-                [],
-                ["TOTALES GENERALES"],
-                ["Cantidad total", resumenReporte.totales.cantidad || 0],
-                [
-                    "Importe a cobrar",
-                    resumenReporte.totales.importeCobrar || 0
-                ],
-                [
-                    "Comisiones pagadas",
-                    resumenReporte.totales.comisionesPagadas || 0
-                ],
-                [
-                    "IVA comisiones",
-                    resumenReporte.totales.ivaComisiones || 0
-                ],
-                [
-                    "Percepción",
-                    resumenReporte.totales.percepcion || 0
-                ],
-                [
-                    "Retención IVA",
-                    resumenReporte.totales.retencionIVA || 0
-                ],
-                [
-                    "Retención ganancias",
-                    resumenReporte.totales.retencionGanancias || 0
-                ],
-                [
-                    "Retención IIBB",
-                    resumenReporte.totales.retencionIIBB || 0
-                ],
-                [
-                    "Importe neto emisores",
-                    resumenReporte.totales.importeNeto || 0
-                ]
-            );
-        }
+    } else {
 
-        if (resumenReporte.bancoAdherente) {
-            filasResumen.push(
-                [],
-                ["BANCO ADHERENTE"],
-                [
-                    "Comisión Banco Adherente",
-                    resumenReporte.bancoAdherente
-                        .comisionBancoAdherente || 0
-                ],
-                [
-                    "IVA Banco Adherente",
-                    resumenReporte.bancoAdherente
-                        .ivaBancoAdherente || 0
-                ]
-            );
-        }
+        /**
+         * RDEBLIQD / LDEBLIQD / LIQC
+         */
+        worksheet.columns = [
+            {
+                header: 'Registro',
+                key: 'type',
+                width: 12
+            },
+            {
+                header: esFormatoDebito
+                    ? 'ID Débito / Comercio'
+                    : 'ID Comercio',
+                key: 'comercio_id',
+                width: 22
+            },
+            {
+                header: esFormatoDebito
+                    ? 'Nro Comprobante'
+                    : 'ID Banco',
+                key: 'banco_id',
+                width: 18
+            },
+            {
+                header: esFormatoDebito
+                    ? 'Tarjeta'
+                    : 'Tarjeta / Token',
+                key: 'tarjeta_token',
+                width: 24
+            },
+            {
+                header: 'Fecha Proc.',
+                key: 'fecha_proc',
+                width: 14
+            },
+            {
+                header: esFormatoDebito
+                    ? 'Importe'
+                    : 'Monto Bruto',
+                key: 'monto_1',
+                width: 16
+            },
+            {
+                header: 'Cód. Error',
+                key: 'codigo_error',
+                width: 12
+            },
+            {
+                header: 'Descripción de Estado',
+                key: 'mensaje_error',
+                width: 45
+            }
+        ];
+    }
+
+
+    /**
+     * Estilo de cabecera.
+     */
+    worksheet
+        .getRow(1)
+        .eachCell((cell) => {
+            cell.fill =
+                styles.headerFill;
+
+            cell.font =
+                styles.headerFont;
+
+            cell.alignment = {
+                vertical: 'middle',
+                horizontal: 'center'
+            };
+        });
+
+
+    let indexDetalle = 0;
+
+
+    /**
+     * ============================================================
+     * AGREGAR REGISTROS
+     * ============================================================
+     */
+    registros.forEach((rowData) => {
 
         if (
-            resumenReporte.totalNeto !== null &&
-            resumenReporte.totalNeto !== undefined
+            !rowData ||
+            rowData.type !== 'DETALLE'
         ) {
-            filasResumen.push(
-                [],
-                ["TOTAL NETO", resumenReporte.totalNeto]
-            );
+            return;
         }
 
-        XLSX.utils.sheet_add_aoa(
-            worksheet,
-            filasResumen,
-            {
-                origin: `A${filaActual}`
-            }
-        );
-    }
 
-    /*
-     * Formato de importes.
-     */
-    aplicarFormatoMoneda(
-        worksheet,
-        datosMapeados.length,
-        [
-            3, 4, 5, 6, 7, 8, 9, 10
-        ]
-    );
+        let row;
 
-    /*
-     * Ajuste del ancho de las columnas.
-     */
-    worksheet["!cols"] = [
-        { wch: 14 },
-        { wch: 32 },
-        { wch: 12 },
-        { wch: 18 },
-        { wch: 20 },
-        { wch: 16 },
-        { wch: 15 },
-        { wch: 18 },
-        { wch: 22 },
-        { wch: 18 },
-        { wch: 18 }
-    ];
 
-    /*
-     * Aplicar autofiltro a la tabla principal.
-     */
-    worksheet["!autofilter"] = {
-        ref: `A1:K${datosMapeados.length + 1}`
-    };
+        /**
+         * VISA CRÉDITO
+         */
+        if (selectedFormat === 'DEBLIQC') {
 
-    /*
-     * Congelar encabezados.
-     */
-    worksheet["!freeze"] = {
-        xSplit: 0,
-        ySplit: 1
-    };
+            row = worksheet.addRow({
+                type:
+                    rowData.type,
 
-    const workbook = XLSX.utils.book_new();
+                codigo_banco:
+                    rowData.codigo_banco,
 
-    XLSX.utils.book_append_sheet(
-        workbook,
-        worksheet,
-        "Pagos Link"
-    );
+                codigo_casa:
+                    rowData.codigo_casa,
 
-    XLSX.writeFile(
-        workbook,
-        nombreArchivo
-    );
-}
+                numero_lote:
+                    rowData.numero_lote,
 
-function aplicarFormatoMoneda(
-    worksheet,
-    cantidadRegistros,
-    columnasMonetarias
-) {
-    /*
-     * Los datos comienzan en la fila 2 porque
-     * la fila 1 contiene los encabezados.
-     */
-    for (
-        let fila = 2;
-        fila <= cantidadRegistros + 1;
-        fila++
-    ) {
-        for (const columna of columnasMonetarias) {
-            const referencia = XLSX.utils.encode_cell({
-                r: fila - 1,
-                c: columna
+                codigo_transaccion:
+                    rowData.codigo_transaccion,
+
+                numero_establecimiento:
+                    rowData.numero_establecimiento,
+
+                tarjeta_token:
+                    rowData.tarjeta_token,
+
+                numero_cupon:
+                    rowData.numero_cupon,
+
+                fecha_proc:
+                    rowData.fecha_proc,
+
+                codigo_autorizacion:
+                    rowData.codigo_autorizacion,
+
+                monto_1:
+                    Number.parseFloat(
+                        rowData.monto_1
+                    ) || 0,
+
+                cuotas:
+                    rowData.cuotas,
+
+                identificador:
+                    rowData.identificador,
+
+                numero_cuenta:
+                    rowData.numero_cuenta,
+
+                estado_movimiento:
+                    rowData.estado_movimiento,
+
+                codigo_motivo_1:
+                    rowData.codigo_motivo_1,
+
+                descripcion_motivo_1:
+                    rowData.descripcion_motivo_1,
+
+                codigo_motivo_2:
+                    rowData.codigo_motivo_2,
+
+                descripcion_motivo_2:
+                    rowData.descripcion_motivo_2
             });
 
-            if (worksheet[referencia]) {
-                worksheet[referencia].t = "n";
-                worksheet[referencia].z =
-                    '$ #,##0.00';
-            }
+        } else {
+
+            /**
+             * DÉBITO / LIQC
+             */
+            row = worksheet.addRow({
+                type:
+                    rowData.type,
+
+                comercio_id:
+                    rowData.comercio_id,
+
+                banco_id:
+                    rowData.banco_id,
+
+                tarjeta_token:
+                    rowData.tarjeta_token,
+
+                fecha_proc:
+                    rowData.fecha_proc,
+
+                monto_1:
+                    Number.parseFloat(
+                        rowData.monto_1
+                    ) || 0,
+
+                codigo_error:
+                    rowData.codigo_error,
+
+                mensaje_error:
+                    rowData.mensaje_error
+            });
         }
-    }
+
+
+        indexDetalle++;
+
+
+        /**
+         * Zebra.
+         */
+        if (indexDetalle % 2 === 0) {
+            row.eachCell((cell) => {
+                cell.fill =
+                    styles.zebraFill;
+            });
+        }
+
+
+        /**
+         * Bordes, alineación y moneda.
+         */
+        row.eachCell(
+            (cell, colNumber) => {
+
+                cell.border = {
+                    top: styles.border,
+                    left: styles.border,
+                    bottom: styles.border,
+                    right: styles.border
+                };
+
+
+                const esColumnaImporte =
+                    selectedFormat === 'DEBLIQC'
+                        ? colNumber === 11
+                        : colNumber === 6;
+
+
+                if (esColumnaImporte) {
+
+                    cell.numFmt =
+                        '$#,##0.00';
+
+                    cell.alignment = {
+                        horizontal: 'right'
+                    };
+
+                } else {
+
+                    cell.alignment = {
+                        horizontal: 'center'
+                    };
+                }
+
+
+                /**
+                 * Resaltar errores solamente
+                 * en formatos no DEBLIQC.
+                 */
+                const tieneError =
+                    rowData.codigo_error &&
+                    rowData.codigo_error !== '000' &&
+                    rowData.codigo_error !== '00';
+
+
+                if (
+                    selectedFormat !== 'DEBLIQC' &&
+                    colNumber === 8 &&
+                    tieneError
+                ) {
+                    cell.font = {
+                        name: 'Segoe UI',
+                        color: {
+                            argb: 'FFC00000'
+                        },
+                        bold: true
+                    };
+                }
+            }
+        );
+    });
+
+
+    /**
+     * Devuelve el Excel como Buffer.
+     */
+    const buffer =
+        await workbook.xlsx.writeBuffer();
+
+    return buffer;
 }
+
+
+module.exports = {
+    generarExcelTarjetas
+};
