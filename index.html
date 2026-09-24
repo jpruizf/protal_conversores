@@ -1,278 +1,49 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <title>Conciliador de Pagos</title>
-
-    <link rel="stylesheet" href="./styles.css">
-    <link
-        rel="icon"
-        href="./logo.png"
-        type="image/png"
-    >
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversor Multibanco de Liquidaciones</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="./logo.png" type="image/png">
 </head>
-
-
 <body>
+    <img class="logo-tipo" src="./Logo tipo.jpg" alt="interredes-logo">
+    <div class="container">
+        
+        <h2>Conversor de Liquidaciones</h2>
+        
+        <div class="form-group">
+            <label for="bancoSelect">1. Selecciona el formato / Banco correspondiente:</label>
+            <select id="bancoSelect">
+                <option value="supervielle">Convertir html</option>
+                <option value="banco_b">Convertir HTML</option>
+                <option value="pdf">Convertir PDF</option>
+            </select>
+        </div>
 
-    <img class="inter-logo" src="./Logo tipo.jpg" alt="logo-interredes">
-
-    <main class="contenedor">
-
-        <section class="tarjeta">
-
-            <header class="encabezado">
-
-                <h1>
-                    Conciliador de Pagos
-                </h1>
-
-                <p>
-                    Seleccione los tres archivos necesarios
-                    para realizar la conciliación automática.
-                </p>
-
-            </header>
-
-
-            <form id="formConciliador">
-
-                <!-- MAYOR / ERP -->
-
-                <label
-                    for="mayor"
-                    class="zona-archivo"
-                >
-
-                    <h2>
-                        Mayor / ERP
-                    </h2>
-
-                    <p>
-                        Seleccione el archivo que contiene
-                        los asientos y pagos.
-                    </p>
-
-                    <input
-                        type="file"
-                        id="mayor"
-                        name="mayor"
-                        accept=".xlsx,.xls"
-                        required
-                    >
-
-                    <div
-                        id="nombreMayor"
-                        class="nombre-archivo"
-                    >
-                        Ningún archivo seleccionado
-                    </div>
-
-                </label>
-
-
-                <div class="separador"></div>
-
-
-                <!-- Resumen de comisiones-->
-
-                <!--<label
-                    for="comisiones"
-                    class="zona-archivo"
-                >
-
-                    <h2>
-                        Resumen de comisiones
-                    </h2>
-
-                    <p>
-                        Seleccione el archivo que contiene
-                        las comisiones de las liquidaciones.
-                    </p>
-
-                    <input
-                        type="file"
-                        id="mayor"
-                        name="mayor"
-                        accept=".xlsx,.xls"
-                        required
-                    >
-
-                    <div
-                        id="nombreMayor"
-                        class="nombre-archivo"
-                    >
-                        Ningún archivo seleccionado
-                    </div>
-
-                </label>
-
-
-                <div class="separador"></div>-->
-
-                <!-- LIQUIDACIONES -->
-
-                <label
-                    for="liquidaciones"
-                    class="zona-archivo"
-                >
-
-                    <h2>
-                        Liquidaciones
-                    </h2>
-
-                    <p>
-                        Seleccione el archivo de
-                        comisiones e impuestos.
-                    </p>
-
-                    <input
-                        type="file"
-                        id="liquidaciones"
-                        name="liquidaciones"
-                        accept=".xlsx,.xls"
-                        required
-                    >
-
-                    <div
-                        id="nombreLiquidaciones"
-                        class="nombre-archivo"
-                    >
-                        Ningún archivo seleccionado
-                    </div>
-
-                </label>
-
-
-                <div class="separador"></div>
-
-
-                <!-- MAYOR BANCO -->
-
-                <label
-                    for="banco"
-                    class="zona-archivo"
-                >
-
-                    <h2>
-                        Mayor del Banco
-                    </h2>
-
-                    <p>
-                        Seleccione el archivo con
-                        los créditos bancarios.
-                    </p>
-
-                    <input
-                        type="file"
-                        id="banco"
-                        name="banco"
-                        accept=".xlsx,.xls"
-                        required
-                    >
-
-                    <div
-                        id="nombreBanco"
-                        class="nombre-archivo"
-                    >
-                        Ningún archivo seleccionado
-                    </div>
-
-                </label>
-
-
-                <!-- BOTÓN -->
-
-                <div class="acciones">
-
-                    <button
-                        type="button"
-                        id="btnDescargarExcel"
-                        class="boton-principal"
-                    >
-                        Descargar Excel
-                    </button>
-
+        <div class="form-group">
+            <label>2. Carga el archivo HTML original:</label>
+            <div class="box" id="dropzone" onclick="document.getElementById('fileInput').click()">
+                Arrastra aquí tu archivo .html o haz clic para buscarlo.
+                <input type="file" 
+                    id="fileInput" 
+                    accept=".pdf,application/pdf" 
+                    multiple 
+                    style="display:none">
                 </div>
+        </div>
 
-            </form>
-
-
-            <!-- SPINNER -->
-
-            <div
-                id="spinner"
-                class="spinner-contenedor oculto"
-            >
-                <div class="spinner"></div>
-            </div>
-
-
-            <!-- ESTADO -->
-
-            <div
-                id="estado"
-                class="estado"
-            ></div>
-
-
-            <!-- RESUMEN -->
-
-            <section
-                id="resumen"
-                class="informacion oculto"
-            >
-
-                <h3>
-                    Resultado del procesamiento
-                </h3>
-
-                <p>
-                    Registros Mayor:
-                    <strong id="cantidadMayor">
-                        0
-                    </strong>
-                </p>
-
-                <p>
-                    Liquidaciones:
-                    <strong id="cantidadLiquidaciones">
-                        0
-                    </strong>
-                </p>
-
-                <p>
-                    Movimientos Banco:
-                    <strong id="cantidadBanco">
-                        0
-                    </strong>
-                </p>
-
-            </section>
-
-        </section>
-
-    </main>
-
-
-    
-
+        <div id="status"></div>
+        <button id="btnConvertir">Convertir y Descargar Excel</button>
+    </div>
+    <!-- Vinculamos el archivo JS separado (defer asegura que cargue cuando el HTML esté listo) -->
 </body>
 <footer>
-    <img
-        class="interredes-logo-alt"
-        src="./interredes-logo-alt.png"
-        alt="INTERREDES"
-    >
-    
-    <script src="./script.js"></script>
+    <span>
+        <img class="logo" src="interredes-logo-alt.png" alt="interredes-mas-cerca">
+    </span>
+   
+    <script src="app.js" defer></script>
 </footer>
-
 </html>
