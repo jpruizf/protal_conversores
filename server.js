@@ -3,315 +3,109 @@ const multer = require("multer");
 const path = require("path");
 
 const {
-    detectarTipoTarjeta
-} = require("./services/detectorTarjeta");
+    parsearResumen
+} = require("./services/parserResumen");
 
 const {
-    parsearLiquidacionesTarjetas
-} = require("./services/parserLiquidacionTarjetas");
-
-
-const {
-    generarExcelLiquidacionTarjetas
+    generarExcelResumen
 } = require("./services/excelService");
 
-
 const {
-    detectarEnteRecaudador
-}= require("./services/detectorEnteRecaudador");
+    detectarEnte
+}= require("./services/detectorEnte");
 
 
-const {
-    createHash
-}= require("node:crypto");
 
 const app = express();
 
-const PORT =
-    process.env.PORT || 3008;
+const PORT = 3009;
 
 
 /**
- * Multer en memoria.
+ * ============================================================
+ * MULTER
+ * ============================================================
  *
- * El PDF no se guarda físicamente.
- * Se procesa directamente desde el buffer.
+ * Usamos memoryStorage para evitar crear archivos
+ * temporales en disco.
+ *
+ * El PDF queda disponible en:
+ *
+ * req.file.buffer
  */
 const upload = multer({
-    storage: multer.memoryStorage()
+    storage: multer.memoryStorage(),
+
+    fileFilter: (
+        req,
+        file,
+        cb
+    ) => {
+
+        if (
+            file.mimetype !==
+            "application/pdf"
+        ) {
+
+            return cb(
+                new Error(
+                    "Solo se permiten archivos PDF."
+                )
+            );
+
+        }
+
+
+        cb(
+            null,
+            true
+        );
+
+    },
+
+    limits: {
+
+        /**
+         * 20 MB máximo por PDF.
+         *
+         * Podemos modificarlo después
+         * si encontramos resúmenes mayores.
+         */
+        fileSize:
+            20 * 1024 * 1024
+
+    }
+
 });
 
 
 /**
- * Archivos estáticos del frontend.
+ * ============================================================
+ * ARCHIVOS ESTÁTICOS
+ * ============================================================
  */
 app.use(
     express.static(
-        path.join(__dirname, "public")
+        path.join(
+            __dirname,
+            "public"
+        )
     )
 );
 
 
 /**
- * Extrae todo el texto de un PDF.
+ * ============================================================
+ * EXTRACCIÓN DE TEXTO PDF
+ * ============================================================
  *
- * @param {Buffer} bufferPDF
- * @returns {Promise<String>}
+ * Recibe un Buffer del PDF.
+ *
+ * Devuelve todo el texto concatenado,
+ * manteniendo una línea por página.
  */
-async function extraerTextoPDF(bufferPDF) {
-
-    const pdfjsLib =
-        await import("pdfjs-dist/legacy/build/pdf.mjs");
-
-    const datosPDF =
-        new Uint8Array(bufferPDF);
-
-    const documento =
-        await pdfjsLib.getDocument({
-            data: datosPDF
-        }).promise;
-
-    let textoCompleto = "";
-
-    for (
-        let numeroPagina = 1;
-        numeroPagina <= documento.numPages;
-        numeroPagina++
-    ) {
-
-        const pagina =
-            await documento.getPage(
-                numeroPagina
-            );
-
-        const contenido =
-            await pagina.getTextContent();
-
-        const textoPagina =
-            contenido.items
-                .map(
-                    item => item.str
-                )
-                .join(" ");
-
-        textoCompleto +=
-            textoPagina + "\n";
-    }
-
-    return textoCompleto;
-}
-
-/**
- * Genera un hash perceptual simple (aHash)
- * de 8 x 8 = 64 bits.
- *
- * Tolera cambios leves de:
- * - resolución
- * - compresión
- * - escala
- *
- * @param {Object} imagen
- * @returns {String|null}
- */
-function calcularHashPerceptual(
-    imagen
-) {
-
-    if (
-        !imagen ||
-        !imagen.data ||
-        !imagen.width ||
-        !imagen.height
-    ) {
-        return null;
-    }
-
-
-    const {
-        data,
-        width,
-        height
-    } = imagen;
-
-
-    const totalPixeles =
-        width * height;
-
-
-    if (
-        totalPixeles <= 0
-    ) {
-        return null;
-    }
-
-
-    /**
-     * PDF.js normalmente entrega
-     * RGB o RGBA.
-     */
-    const bytesPorPixel =
-        data.length / totalPixeles;
-
-
-    if (
-        bytesPorPixel !== 3 &&
-        bytesPorPixel !== 4
-    ) {
-        return null;
-    }
-
-
-    const tamanio =
-        8;
-
-
-    const grises = [];
-
-
-    /**
-     * Tomamos una muestra de 8x8
-     * distribuida por toda la imagen.
-     */
-    for (
-        let y = 0;
-        y < tamanio;
-        y++
-    ) {
-
-        for (
-            let x = 0;
-            x < tamanio;
-            x++
-        ) {
-
-            const px =
-                Math.min(
-                    width - 1,
-                    Math.floor(
-                        (x + 0.5) *
-                        width /
-                        tamanio
-                    )
-                );
-
-
-            const py =
-                Math.min(
-                    height - 1,
-                    Math.floor(
-                        (y + 0.5) *
-                        height /
-                        tamanio
-                    )
-                );
-
-
-            const indice =
-                Math.floor(
-                    (
-                        py * width +
-                        px
-                    ) *
-                    bytesPorPixel
-                );
-
-
-            const r =
-                data[indice];
-
-            const g =
-                data[indice + 1];
-
-            const b =
-                data[indice + 2];
-
-
-            /**
-             * Conversión aproximada
-             * a escala de grises.
-             */
-            const gris =
-                (
-                    r * 0.299 +
-                    g * 0.587 +
-                    b * 0.114
-                );
-
-
-            grises.push(
-                gris
-            );
-        }
-    }
-
-
-    const promedio =
-        grises.reduce(
-            (acumulado, valor) =>
-                acumulado + valor,
-            0
-        ) /
-        grises.length;
-
-
-    /**
-     * Generamos 64 bits.
-     */
-    let bits = "";
-
-
-    for (
-        const gris
-        of grises
-    ) {
-
-        bits +=
-            gris >= promedio
-                ? "1"
-                : "0";
-    }
-
-
-    /**
-     * Convertimos cada 4 bits
-     * a hexadecimal.
-     */
-    let hexadecimal = "";
-
-
-    for (
-        let i = 0;
-        i < bits.length;
-        i += 4
-    ) {
-
-        hexadecimal +=
-            parseInt(
-                bits.substring(
-                    i,
-                    i + 4
-                ),
-                2
-            ).toString(16);
-    }
-
-
-    return hexadecimal;
-}
-
-/**
- * Inspecciona las imágenes embebidas
- * en la primera página del PDF.
- *
- * Devuelve información que podremos
- * utilizar como firma visual para
- * distinguir VISA / MASTERCARD.
- *
- * @param {Buffer} bufferPDF
- * @returns {Promise<Array>}
- */
-async function extraerFirmasVisualesPDF(
-    bufferPDF
+async function extraerTextoPdf(
+    pdfBuffer
 ) {
 
     const pdfjsLib =
@@ -320,225 +114,486 @@ async function extraerFirmasVisualesPDF(
         );
 
 
-    const datosPDF =
-        new Uint8Array(
-            bufferPDF
-        );
+    const loadingTask =
+        pdfjsLib.getDocument({
+
+            data:
+                new Uint8Array(
+                    pdfBuffer
+                ),
+
+            disableWorker:
+                true
+
+        });
 
 
-    const documento =
-        await pdfjsLib.getDocument({
-            data: datosPDF
-        }).promise;
+    const pdf =
+        await loadingTask.promise;
 
 
-    /**
-     * Solamente necesitamos inspeccionar
-     * la primera página porque el logo
-     * del ente está en el encabezado.
-     */
-    const pagina =
-        await documento.getPage(1);
-
-
-    const operadores =
-        await pagina.getOperatorList();
-
-
-    const firmas = [];
-
-
-    /**
-     * Obtiene un objeto de imagen
-     * cargado por PDF.js.
-     */
-    function obtenerObjetoImagen(
-        id
-    ) {
-
-        return new Promise(
-            (resolve) => {
-
-                pagina.objs.get(
-                    id,
-                    imagen => {
-                        resolve(imagen);
-                    }
-                );
-
-            }
-        );
-    }
+    const paginas = [];
 
 
     for (
-        let i = 0;
-        i < operadores.fnArray.length;
-        i++
+        let numeroPagina = 1;
+        numeroPagina <= pdf.numPages;
+        numeroPagina++
     ) {
 
-        const operador =
-            operadores.fnArray[i];
+        const pagina =
+            await pdf.getPage(
+                numeroPagina
+            );
 
 
-        const argumentos =
-            operadores.argsArray[i];
+        const contenido =
+            await pagina.getTextContent();
+
+
+        const items =
+            contenido.items || [];
 
 
         /**
-         * Imagen normal embebida.
+         * Agrupamos elementos por coordenada Y.
+         *
+         * PDF.js guarda:
+         *
+         * transform[4] = X
+         * transform[5] = Y
          */
-        if (
-            operador ===
-            pdfjsLib.OPS.paintImageXObject
+        const lineasMap =
+            new Map();
+
+
+        const toleranciaY =
+            2;
+
+
+        for (
+            const item of items
         ) {
 
-            const idImagen =
-                argumentos[0];
-
-
-            const imagen =
-                await obtenerObjetoImagen(
-                    idImagen
-                );
-
-
-            if (!imagen) {
+            if (
+                !item.str ||
+                !item.str.trim()
+            ) {
                 continue;
             }
 
 
-            const firma = {
-                id: idImagen,
+            const x =
+                item.transform?.[4] ??
+                0;
 
-                width:
-                imagen.width || null,
 
-                height:
-                imagen.height || null,
-
-                hash: null,
-
-                perceptualHash:
-            calcularHashPerceptual(
-                imagen
-            )
-        };
+            const y =
+                item.transform?.[5] ??
+                0;
 
 
             /**
-             * Si PDF.js nos entrega
-             * los píxeles de la imagen,
-             * calculamos SHA-256.
+             * Buscamos una línea cuya Y
+             * sea suficientemente cercana.
              */
-            if (
-                imagen.data &&
-                imagen.data.byteLength
+            let claveEncontrada =
+                null;
+
+
+            for (
+                const clave of lineasMap.keys()
             ) {
 
-                const bufferImagen =
-                    Buffer.from(
-                        imagen.data.buffer,
-                        imagen.data.byteOffset,
-                        imagen.data.byteLength
-                    );
+                if (
+                    Math.abs(
+                        clave - y
+                    ) <= toleranciaY
+                ) {
 
+                    claveEncontrada =
+                        clave;
 
-                firma.hash =
-                    createHash("sha256")
-                        .update(bufferImagen)
-                        .digest("hex");
+                    break;
+
+                }
+
             }
 
 
-            firmas.push(
-                firma
-            );
+            if (
+                claveEncontrada === null
+            ) {
+
+                claveEncontrada =
+                    y;
+
+
+                lineasMap.set(
+                    claveEncontrada,
+                    []
+                );
+
+            }
+
+
+            lineasMap
+                .get(
+                    claveEncontrada
+                )
+                .push({
+
+                    x,
+
+                    texto:
+                        item.str.trim()
+
+                });
+
         }
 
 
         /**
-         * Imagen inline.
+         * El PDF se lee de arriba hacia abajo.
+         *
+         * Normalmente las coordenadas Y mayores
+         * corresponden a la parte superior.
          */
-        if (
-            operador ===
-            pdfjsLib.OPS.paintInlineImageXObject
+        const coordenadasY =
+            Array.from(
+                lineasMap.keys()
+            )
+            .sort(
+                (
+                    a,
+                    b
+                ) =>
+                    b - a
+            );
+
+
+        const lineasPagina =
+            [];
+
+
+        for (
+            const y of coordenadasY
         ) {
 
-            const imagen =
-                argumentos[0];
+            const elementos =
+                lineasMap
+                    .get(y)
+                    .sort(
+                        (
+                            a,
+                            b
+                        ) =>
+                            a.x - b.x
+                    );
 
 
-            if (!imagen) {
+            const linea =
+                elementos
+                    .map(
+                        elemento =>
+                            elemento.texto
+                    )
+                    .join(" ")
+                    .replace(
+                        /\s+/g,
+                        " "
+                    )
+                    .trim();
+
+
+            if (
+                linea
+            ) {
+
+                lineasPagina.push(
+                    linea
+                );
+
+            }
+
+        }
+
+
+        const textoPagina =
+            lineasPagina.join(
+                "\n"
+            );
+
+
+        paginas.push(
+            textoPagina
+        );
+
+    }
+
+
+    return paginas.join(
+        "\n"
+    );
+}
+
+async function extraerImagenesPdf(
+    pdfBuffer
+) {
+
+    const pdfjsLib =
+        await import(
+            "pdfjs-dist/legacy/build/pdf.mjs"
+        );
+
+
+    const loadingTask =
+        pdfjsLib.getDocument({
+
+            data:
+                new Uint8Array(
+                    pdfBuffer
+                ),
+
+            disableWorker:
+                true
+
+        });
+
+
+    const pdf =
+        await loadingTask.promise;
+
+
+    const imagenes = [];
+
+
+    /**
+     * Evitamos procesar dos veces
+     * la misma imagen compartida.
+     */
+    const imagenesProcesadas =
+        new Set();
+
+
+    for (
+        let numeroPagina = 1;
+        numeroPagina <= pdf.numPages;
+        numeroPagina++
+    ) {
+
+        const pagina =
+            await pdf.getPage(
+                numeroPagina
+            );
+
+
+        const operatorList =
+            await pagina.getOperatorList();
+
+
+        for (
+            let i = 0;
+            i < operatorList.fnArray.length;
+            i++
+        ) {
+
+            if (
+                operatorList.fnArray[i] !==
+                pdfjsLib.OPS.paintImageXObject
+            ) {
                 continue;
             }
 
 
-            const firma = {
-                id: "INLINE",
-                width:
-                    imagen.width || null,
-                height:
-                    imagen.height || null,
-                hash: null,
-
-                perceptualHash:
-                    calcularHashPerceptual(
-                    imagen
-                )
-            };
+            const args =
+                operatorList.argsArray[i];
 
 
+            const nombreImagen =
+                args[0];
+
+
+            /**
+             * Si ya procesamos este objeto,
+             * no lo volvemos a buscar.
+             */
             if (
-                imagen.data &&
-                imagen.data.byteLength
+                imagenesProcesadas.has(
+                    nombreImagen
+                )
             ) {
-
-                const bufferImagen =
-                    Buffer.from(
-                        imagen.data.buffer,
-                        imagen.data.byteOffset,
-                        imagen.data.byteLength
-                    );
-
-
-                firma.hash =
-                    createHash("sha256")
-                        .update(bufferImagen)
-                        .digest("hex");
+                continue;
             }
 
 
-            firmas.push(
-                firma
+            imagenesProcesadas.add(
+                nombreImagen
             );
+
+
+            /**
+             * Los nombres que comienzan con g_
+             * pertenecen normalmente a commonObjs.
+             *
+             * El resto pertenece a objs.
+             */
+            const almacenObjetos =
+                nombreImagen.startsWith("g_")
+                    ? pagina.commonObjs
+                    : pagina.objs;
+
+
+            let imagen;
+
+
+            try {
+
+                imagen =
+                    await Promise.race([
+
+                        new Promise(
+                            resolve => {
+
+                                almacenObjetos.get(
+                                    nombreImagen,
+                                    resolve
+                                );
+
+                            }
+                        ),
+
+                        new Promise(
+                            resolve => {
+
+                                setTimeout(
+                                    () => resolve(null),
+                                    2000
+                                );
+
+                            }
+                        )
+
+                    ]);
+
+            }
+            catch (
+                error
+            ) {
+
+                console.log(
+                    `[IMAGEN] Error ${nombreImagen}: ${error.message}`
+                );
+
+                continue;
+
+            }
+
+
+            if (
+                !imagen
+            ) {
+
+                console.log(
+                    `[IMAGEN] Timeout: ${nombreImagen}`
+                );
+
+                continue;
+
+            }
+
+
+            if (
+                !imagen.data
+            ) {
+
+                console.log(
+                    `[IMAGEN] Sin datos: ${nombreImagen}`
+                );
+
+                continue;
+
+            }
+
+
+            imagenes.push({
+
+                id:
+                    nombreImagen,
+
+                pagina:
+                    numeroPagina,
+
+                width:
+                    imagen.width,
+
+                height:
+                    imagen.height,
+
+                buffer:
+                    Buffer.from(
+                        imagen.data
+                    )
+
+            });
+
+
+            console.log(
+                `[IMAGEN] OK: ${nombreImagen} | ${imagen.width}x${imagen.height}`
+            );
+
         }
+
     }
 
-    return firmas;
+
+    return imagenes;
 }
 
 
+
+
 /**
- * Endpoint de diagnóstico.
+ * ============================================================
+ * ENDPOINT PRINCIPAL
+ * ============================================================
  *
- * Recibe un PDF y devuelve:
- * - nombre del archivo
- * - tipo de tarjeta
- * - cantidad de liquidaciones
- * - registros extraídos
+ * POST /convertir
+ *
+ * Campo esperado:
+ *
+ * archivoPDF
  */
 app.post(
     "/convertir",
-    upload.array("archivoPDF", 20),
 
-    async (req, res) => {
+    upload.array(
+        "archivoPDF",
+        20
+    ),
+
+    async (
+        req,
+        res
+    ) => {
 
         try {
 
+            console.log(
+                "========================================"
+            );
+
+            console.log(
+                "[REQUEST] POST /convertir"
+            );
+
+            console.log(
+                "========================================"
+            );
+
+
             /**
-             * Validación:
-             * debe existir al menos un archivo.
+             * Validación archivos.
              */
             if (
                 !req.files ||
@@ -548,160 +603,145 @@ app.post(
                 return res
                     .status(400)
                     .json({
-                        error:
-                            "Debe seleccionar al menos un archivo PDF."
+                        ok: false,
+                        error: "No se recibieron archivos PDF."
                     });
+
             }
 
 
-            /**
-             * Arrays donde vamos a separar
-             * las liquidaciones según tipo.
-             */
-            const resumenesLiquidaciones = [];
+            const resumenes = [];
 
 
-            /**
-             * Procesamos cada PDF recibido.
-             */
-            for (const archivo of req.files) {
+            for (
+                const archivo of req.files
+            ) {
 
-                /**
-                 * Validación MIME.
-                 */
-                if (
-                    archivo.mimetype !==
-                    "application/pdf"
-                ) {
+                console.log(
+                    "========================================"
+                );
 
-                    return res
-                        .status(400)
-                        .json({
-                            error:
-                                `El archivo "${archivo.originalname}" no es un PDF válido.`
-                        });
-                }
-
-
-                /**
-                 * 1.
-                 * Extraer texto completo.
-                 */
-                const contenidoPDF =
-                    await extraerTextoPDF(
-                        archivo.buffer
-                    );
-                const firmasVisuales =
-                    await extraerFirmasVisualesPDF(
-                        archivo.buffer
+                console.log(
+                    `[PDF] Procesando: ${archivo.originalname}`
                 );
 
 
-                console.log( `[IMAGENES] ${archivo.originalname}`,
-                    firmasVisuales
-                );
-                
-                const enteRecaudador =
-                    detectarEnteRecaudador(
-                        contenidoPDF,
-                        archivo.originalname,
-                        firmasVisuales
-                    );
-
-
-                if (enteRecaudador === "DESCONOCIDO") 
-                {
-
-                    return res.status(400).json({
-                        error: `No se pudo identificar el ente recaudador del archivo "${archivo.originalname}".`
-                        });
-                }
-
                 /**
-                 * 2.
-                 * Detectar crédito / débito.
+                 * =============================================
+                 * EXTRAER TEXTO
+                 * =============================================
                  */
-                const tipoTarjeta =
-                    detectarTipoTarjeta(
-                        contenidoPDF
+                const textoPdf =
+                    await extraerTextoPdf(
+                        archivo.buffer
                     );
 
 
                 if (
-                    tipoTarjeta ===
-                    "DESCONOCIDO"
+                    !textoPdf ||
+                    textoPdf.trim() === ""
                 ) {
 
-                    return res
-                        .status(400)
-                        .json({
-                            error:
-                                `No se pudo determinar el tipo de tarjeta del archivo "${archivo.originalname}".`
-                        });
+                    throw new Error(
+                        `No se pudo extraer texto del PDF: ${archivo.originalname}`
+                    );
+
                 }
 
 
+                console.log(
+                    `[PDF] Texto extraído: ${textoPdf.length} caracteres`
+                );
+
+
                 /**
-                 * 3.
-                 * Extraer liquidaciones.
+                 * =============================================
+                 * EXTRAER IMÁGENES
+                 * =============================================
                  */
-                const liquidaciones =
-                parsearLiquidacionesTarjetas(
-                    contenidoPDF
+                const imagenesPdf =
+                    await extraerImagenesPdf(
+                        archivo.buffer
+                    );
+
+
+                console.log(
+                    `[PDF] Imágenes detectadas: ${imagenesPdf.length}`
                 );
 
 
-                const liquidacionesNumeradas =
-                    liquidaciones.map(
-                    (liquidacion, indice) => ({
-                        ...liquidacion,
+                /**
+                 * =============================================
+                 * DETECTAR ENTE
+                 * =============================================
+                 */
+                const deteccion =
+                    detectarEnte({
 
-                    enteRecaudador,
+                        texto:
+                            textoPdf,
 
-                    tipoTarjeta,
+                        imagenes:
+                            imagenesPdf
 
-                    numeroLiquidacion:
-                        indice + 1
-                })
-            );
+                    });
 
-    resumenesLiquidaciones.push({
-    archivo:
-        archivo.originalname,
 
-    enteRecaudador,
+                if (!deteccion.detectado){
 
-    tipoTarjeta,
+                    throw new Error(
+                        `No se pudo identificar el documento: ${archivo.originalname}`
+                    );
 
-    liquidaciones:
-        liquidacionesNumeradas
-});
+                }
 
- 
-        }// Cierra: for (const archivo of req.files)
+                 /**
+                 * =============================================
+                 * PARSEAR RESUMEN
+                 * =============================================
+                 */
 
-            /**
-             * Generación del Excel.
-             *
-             * Ahora excelService deberá aceptar
-             * ambos arrays.
-             */
-            const bufferExcel =
-                await generarExcelLiquidacionTarjetas(
-                    resumenesLiquidaciones
+                const resumen =
+                    parsearResumen(
+                        textoPdf
+                    );
+
+
+                resumenes.push(
+                    resumen
+                );
+}
+
+
+/**
+* =================================================
+* GENERAR EXCEL
+* =================================================
+*/
+
+
+            const excelBuffer =
+                await generarExcelResumen(
+                    resumenes
                 );
 
 
+            const nombreArchivo =
+                resumenes.length === 1
+
+                ? `Resumen_Visa_Galicia_${(
+                resumenes[0].mesFacturacion ||
+                "RESUMEN"
+                ).replace(/\s+/g, "_")}.xlsx`
+
+                : "Resumenes_Visa_Galicia.xlsx";
+
+
             /**
-             * Nombre del archivo resultante.
+             * =================================================
+             * RESPUESTA
+             * =================================================
              */
-            let nombreArchivo =
-                "Resumen_Liquidacion_Tarjetas.xlsx";
-
-
-            
-
-
             res.setHeader(
                 "Content-Type",
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -714,39 +754,145 @@ app.post(
             );
 
 
+            
+
+
             return res.send(
-                Buffer.from(bufferExcel)
+                excelBuffer
             );
 
-        } catch (error) {
+        }
+        catch (
+            error
+        ) {
 
             console.error(
-                "[ERROR]",
+                "========================================"
+            );
+
+            console.error(
+                "ERROR EN CONVERSIÓN"
+            );
+
+            console.error(
+                "========================================"
+            );
+
+            console.error(
                 error
             );
 
 
-            return res
-                .status(500)
-                .json({
-                    error:
-                        error.message ||
-                        "Error procesando los PDF."
-                });
+            /**
+             * Si todavía no se enviaron headers,
+             * devolvemos JSON de error.
+             */
+            if (
+                !res.headersSent
+            ) {
+
+                return res
+                    .status(500)
+                    .json({
+
+                        ok:
+                            false,
+
+                        error:
+                            error.message ||
+                            "Error interno al procesar el PDF."
+
+                    });
+
+            }
+
         }
+
     }
 );
 
 
 /**
- * Inicio del servidor.
+ * ============================================================
+ * MANEJO DE ERRORES DE MULTER
+ * ============================================================
+ */
+app.use(
+    (
+        error,
+        req,
+        res,
+        next
+    ) => {
+
+        console.error(
+            "[ERROR]",
+            error.message
+        );
+
+
+        if (
+            error instanceof
+            multer.MulterError
+        ) {
+
+            return res
+                .status(400)
+                .json({
+
+                    ok:
+                        false,
+
+                    error:
+                        `Error de carga: ${error.message}`
+
+                });
+
+        }
+
+
+        return res
+            .status(400)
+            .json({
+
+                ok:
+                    false,
+
+                error:
+                    error.message ||
+                    "Error al recibir el archivo."
+
+            });
+
+    }
+);
+
+
+/**
+ * ============================================================
+ * INICIO DEL SERVIDOR
+ * ============================================================
  */
 app.listen(
     PORT,
+    "0.0.0.0",
+
     () => {
 
         console.log(
-            `Servidor iniciado en puerto ${PORT}`
+            "========================================"
+        );
+
+        console.log(
+            "PDF RESUMEN VISA GALICIA"
+        );
+
+        console.log(
+            "========================================"
+        );
+
+        console.log(
+            `Servidor activo en puerto ${PORT}`
         );
 
         console.log(

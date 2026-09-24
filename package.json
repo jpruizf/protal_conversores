@@ -1,16 +1,19 @@
 {
-  "name": "conversor-liquidacion-tarjetas",
+  "name": "pdf_resumen_visa_galicia",
   "version": "1.0.0",
-  "description": "Conversor PDF a Excel de liquidaciones de tarjetas",
   "main": "server.js",
   "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
   },
-  "private": true,
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
   "dependencies": {
     "exceljs": "^4.4.0",
     "express": "^5.2.1",
-    "multer": "^2.3.0",
+    "multer": "^2.4.0",
     "pdfjs-dist": "^5.6.205"
   }
 }
