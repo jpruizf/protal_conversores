@@ -1,197 +1,381 @@
-const menuToggle =
-    document.getElementById("menutoggle");
 
-const navMenu =
-    document.getElementById("navMenu");
 
-const enlacesNav =
-    document.querySelectorAll(
-        "nav a[href^='#']"
+const form = 
+    document.getElementById(
+        "formConciliador"
     );
 
-const tarjetas =
-    document.querySelectorAll(
-        ".converter-card, .converter-card-conciliador"
+const btnDescargarExcel =
+    document.getElementById(
+        "btnDescargarExcel"
+    );
+
+const estado =
+    document.getElementById(
+        "estado"
+    );
+
+const spinner =
+    document.getElementById(
+        "spinner"
     );
 
 
-/* ========================================
-   MENU HAMBURGUESA
-======================================== */
-
-if (menuToggle && navMenu) {
-
-    menuToggle.addEventListener(
-        "click",
-        () => {
-
-            navMenu.classList.toggle(
-                "active"
-            );
-
-            const abierto =
-                navMenu.classList.contains(
-                    "active"
-                );
-
-            menuToggle.setAttribute(
-                "aria-expanded",
-                abierto
-            );
-        }
+const inputMayor =
+    document.getElementById(
+        "mayor"
     );
 
-}
+const inputLiquidaciones =
+    document.getElementById(
+        "liquidaciones"
+    );
+
+const inputBanco =
+    document.getElementById(
+        "banco"
+    );
 
 
-/* ========================================
-   EVENTO DE LAS OPCIONES DEL NAV
-======================================== */
+const nombreMayor =
+    document.getElementById(
+        "nombreMayor"
+    );
 
-enlacesNav.forEach(
-    enlace => {
+const nombreLiquidaciones =
+    document.getElementById(
+        "nombreLiquidaciones"
+    );
 
-        enlace.addEventListener(
-            "click",
-            evento => {
-
-                /*
-                 * Evitamos el salto automático
-                 * del navegador.
-                 */
-                evento.preventDefault();
+const nombreBanco =
+    document.getElementById(
+        "nombreBanco"
+    );
 
 
-                /*
-                 * Obtenemos el href.
-                 *
-                 * Ejemplo:
-                 * "#liq-tarjetas"
-                 */
-                const selector =
-                    enlace.getAttribute(
-                        "href"
-                    );
+/* ========================================================
+   MOSTRAR NOMBRE DE ARCHIVOS
+======================================================== */
 
+inputMayor.addEventListener(
+    "change",
+    () => {
 
-                /*
-                 * Buscamos la tarjeta
-                 * correspondiente.
-                 */
-                const tarjetaSeleccionada =
-                    document.querySelector(
-                        selector
-                    );
-
-
-                /*
-                 * Si el ID no existe,
-                 * detenemos la función.
-                 */
-                if (!tarjetaSeleccionada) {
-                    return;
-                }
-
-
-                /*
-                 * Primero limpiamos cualquier
-                 * estado anterior.
-                 */
-                tarjetas.forEach(
-                    tarjeta => {
-
-                        tarjeta.classList.remove(
-                            "is-dimmed",
-                            "is-highlighted"
-                        );
-                    }
-                );
-
-
-                /*
-                 * Desenfocamos todas
-                 * las tarjetas.
-                 */
-                tarjetas.forEach(
-                    tarjeta => {
-
-                        tarjeta.classList.add(
-                            "is-dimmed"
-                        );
-                    }
-                );
-
-
-                /*
-                 * A la seleccionada le quitamos
-                 * el desenfoque.
-                 */
-                tarjetaSeleccionada.classList.remove(
-                    "is-dimmed"
-                );
-
-
-                /*
-                 * Y le agregamos el destacado.
-                 */
-                tarjetaSeleccionada.classList.add(
-                    "is-highlighted"
-                );
-
-
-                /*
-                 * Scroll suave hacia
-                 * la tarjeta.
-                 */
-                tarjetaSeleccionada.scrollIntoView({
-                    behavior: "smooth",
-                    block: "center"
-                });
-
-
-                /*
-                 * Cerramos el menú hamburguesa.
-                 */
-                if (navMenu) {
-
-                    navMenu.classList.remove(
-                        "active"
-                    );
-                }
-
-
-                if (menuToggle) {
-
-                    menuToggle.setAttribute(
-                        "aria-expanded",
-                        "false"
-                    );
-                }
-
-
-                /*
-                 * Pasados los 1.5 segundos
-                 * restauramos todas las tarjetas.
-                 */
-                setTimeout(
-                    () => {
-
-                        tarjetas.forEach(
-                            tarjeta => {
-
-                                tarjeta.classList.remove(
-                                    "is-dimmed",
-                                    "is-highlighted"
-                                );
-                            }
-                        );
-
-                    },
-                    1500
-                );
-
-            }
-        );
-
+        nombreMayor.textContent =
+            inputMayor.files[0]
+                ? inputMayor.files[0].name
+                : "Ningún archivo seleccionado";
     }
 );
+
+
+inputLiquidaciones.addEventListener(
+    "change",
+    () => {
+
+        nombreLiquidaciones.textContent =
+            inputLiquidaciones.files[0]
+                ? inputLiquidaciones.files[0].name
+                : "Ningún archivo seleccionado";
+    }
+);
+
+
+inputBanco.addEventListener(
+    "change",
+    () => {
+
+        nombreBanco.textContent =
+            inputBanco.files[0]
+                ? inputBanco.files[0].name
+                : "Ningún archivo seleccionado";
+    }
+);
+
+
+/* ========================================================
+   EVENTO GENERAR Y DESCARGAR EXCEL
+======================================================== */
+
+btnDescargarExcel.addEventListener(
+    "click",
+    async () => {
+
+        const archivoMayor =
+            inputMayor.files[0];
+
+        const archivoLiquidaciones =
+            inputLiquidaciones.files[0];
+
+        const archivoBanco =
+            inputBanco.files[0];
+
+
+        /* ====================================================
+           VALIDAR ARCHIVOS
+        ==================================================== */
+
+        if (
+            !archivoMayor ||
+            !archivoLiquidaciones ||
+            !archivoBanco
+        ) {
+
+            mostrarEstado(
+                "Debe seleccionar los tres archivos antes de generar el Excel.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        /* ====================================================
+           PREPARAR FORM DATA
+        ==================================================== */
+
+        const formData =
+            new FormData();
+
+
+        formData.append(
+            "mayor",
+            archivoMayor
+        );
+
+
+        formData.append(
+            "liquidaciones",
+            archivoLiquidaciones
+        );
+
+
+        formData.append(
+            "banco",
+            archivoBanco
+        );
+
+
+        /* ====================================================
+           ESTADO VISUAL
+        ==================================================== */
+
+        btnDescargarExcel.disabled =
+            true;
+
+
+        btnDescargarExcel.textContent =
+            "Generando Excel...";
+
+
+        spinner.classList.remove(
+            "oculto"
+        );
+
+
+        mostrarEstado(
+            "Procesando conciliación y generando Excel...",
+            "procesando"
+        );
+
+
+        try {
+
+            /* ====================================================
+               ENVIAR ARCHIVOS
+            ==================================================== */
+
+            const respuesta =
+                await fetch(
+                    "./procesar-excel",
+                    {
+                        method: "POST",
+                        body: formData
+                    }
+                );
+
+
+            /* ====================================================
+               MANEJO DE ERROR DEL SERVIDOR
+            ==================================================== */
+
+            if (!respuesta.ok) {
+
+                const tipoContenido =
+                    respuesta.headers.get(
+                        "content-type"
+                    ) || "";
+
+
+                /*
+                 * Si Express devuelve JSON,
+                 * mostramos su mensaje.
+                 */
+                if (
+                    tipoContenido.includes(
+                        "application/json"
+                    )
+                ) {
+
+                    const error =
+                        await respuesta.json();
+
+
+                    throw new Error(
+                        error.error ||
+                        "No se pudo generar el Excel."
+                    );
+                }
+
+
+                /*
+                 * Si devuelve HTML, evitamos:
+                 *
+                 * Unexpected token '<'
+                 */
+                const texto =
+                    await respuesta.text();
+
+
+                throw new Error(
+                    `Error del servidor (${respuesta.status}): ${texto}`
+                );
+            }
+
+
+            /* ====================================================
+               RECIBIR EXCEL
+            ==================================================== */
+
+            const blob =
+                await respuesta.blob();
+
+
+            /*
+             * Validación adicional.
+             *
+             * Evita descargar accidentalmente
+             * una respuesta vacía.
+             */
+            if (
+                !blob ||
+                blob.size === 0
+            ) {
+
+                throw new Error(
+                    "El servidor devolvió un archivo vacío."
+                );
+            }
+
+
+            /* ====================================================
+               GENERAR DESCARGA
+            ==================================================== */
+
+            const url =
+                URL.createObjectURL(
+                    blob
+                );
+
+
+            const enlace =
+                document.createElement(
+                    "a"
+                );
+
+
+            enlace.href =
+                url;
+
+
+            enlace.download =
+                "Resultado_Conciliacion.xlsx";
+
+
+            document.body.appendChild(
+                enlace
+            );
+
+
+            enlace.click();
+
+
+            enlace.remove();
+
+
+            URL.revokeObjectURL(
+                url
+            );
+
+
+            /* ====================================================
+               RESULTADO
+            ==================================================== */
+
+            mostrarEstado(
+                "Excel de conciliación generado correctamente.",
+                "exito"
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "[CONCILIADOR]",
+                error
+            );
+
+
+            mostrarEstado(
+                error.message ||
+                "Ocurrió un error al generar el Excel.",
+                "error"
+            );
+
+
+        } finally {
+
+            /* ====================================================
+               RESTAURAR INTERFAZ
+            ==================================================== */
+
+            spinner.classList.add(
+                "oculto"
+            );
+
+
+            btnDescargarExcel.disabled =
+                false;
+
+
+            btnDescargarExcel.textContent =
+                "Generar y descargar Excel";
+        }
+    }
+);
+
+
+/* ========================================================
+   MOSTRAR ESTADO
+======================================================== */
+
+function mostrarEstado(
+    mensaje,
+    tipo
+) {
+
+    estado.textContent =
+        mensaje;
+
+
+    estado.className =
+        "estado";
+
+
+    if (tipo) {
+
+        estado.classList.add(
+            tipo
+        );
+    }
+}

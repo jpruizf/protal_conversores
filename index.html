@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
 
@@ -8,353 +9,270 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>Portal de Conversores | INTERREDES</title>
+    <title>Conciliador de Pagos</title>
 
+    <link rel="stylesheet" href="./styles.css">
     <link
-        rel="stylesheet"
-        href="style.css"
+        rel="icon"
+        href="./logo.png"
+        type="image/png"
     >
-    <link rel="icon" href="./img/logo.png" type="image/png">
 </head>
 
+
 <body>
-    <header>
 
-         <nav class="main-nav">
+    <img class="inter-logo" src="./Logo tipo.jpg" alt="logo-interredes">
 
-        <button
-            class="menu-toggle"
-            id="menutoggle"
-            aria-label="Abrir Menu"
-            aria-expanded="false">
+    <main class="contenedor">
 
+        <section class="tarjeta">
 
-            
-            <span class="line-top"></span>
-            <span class="line-middle"></span>
-            <span class="line-bottom"></span>
-        </button>
-        <ul id="navMenu">
-            <li>
-                <a href="#tarjetas-x">[Conversor de Tarjetas]</a>
-            </li>
-            <li>
-                <a href="#reporte-pagos">[Conversión de Reportes]</a>
-            </li>
-            <li>
-                <a href="#pago-mis-cuentas">[Pago Mis Cuentas]</a>
-            </li>
-            <li>
-                <a href="#info-liq">[Informe de Liquidación]</a>
-            </li>
-            <li>
-                <a href="#bolestas-servicios">[Facturas de Servicios]</a>
-            </li>
-            <li>
-                <a href="#liq-tarjetas">[Liquidación Tarjetas]</a>
-            </li>
-            <li>
-                <a href="#bco-galicia">[Resumen Banco Galicia]</a>
-            </li>
-            <li>
-                <a href="#comisiones">[Conciliacion Comisiones]</a>
-            </li>
-            <li>
-                <a href="#auto-conciliar">[Conciliacion Automatica]</a>
-            </li>
-        </ul>
-    </nav>
-</header>
+            <header class="encabezado">
 
-    <main class="portal">
-        <img class="portal-logo" src="./img/INTERREDES-LOGO-MAS CERCA.jpg" alt="INTERREDES logo">
-        
-
-    <section class="category">
-
-    <div class="converter-grid">
-
-        <a
-            id="tarjetas-x"
-            class="converter-card"
-            href="/tarjetas/"
-            target="_blank"
-            rel="noopener noreferrer"
-        >
-            <div class="converter-icon">💳</div>
-
-            <div class="converter-content">
-                <h4>Conversor de Tarjetas</h4>
+                <h1>
+                    Conciliador de Pagos
+                </h1>
 
                 <p>
-                    Reportes Visa Crédito,
-                    Visa Débito y MasterCard.
+                    Seleccione los tres archivos necesarios
+                    para realizar la conciliación automática.
                 </p>
 
-                <span class="port">Abrir conversor</span>
+            </header>
+
+
+            <form id="formConciliador">
+
+                <!-- MAYOR / ERP -->
+
+                <label
+                    for="mayor"
+                    class="zona-archivo"
+                >
+
+                    <h2>
+                        Mayor / ERP
+                    </h2>
+
+                    <p>
+                        Seleccione el archivo que contiene
+                        los asientos y pagos.
+                    </p>
+
+                    <input
+                        type="file"
+                        id="mayor"
+                        name="mayor"
+                        accept=".xlsx,.xls"
+                        required
+                    >
+
+                    <div
+                        id="nombreMayor"
+                        class="nombre-archivo"
+                    >
+                        Ningún archivo seleccionado
+                    </div>
+
+                </label>
+
+
+                <div class="separador"></div>
+
+
+                <!-- Resumen de comisiones-->
+
+                <!--<label
+                    for="comisiones"
+                    class="zona-archivo"
+                >
+
+                    <h2>
+                        Resumen de comisiones
+                    </h2>
+
+                    <p>
+                        Seleccione el archivo que contiene
+                        las comisiones de las liquidaciones.
+                    </p>
+
+                    <input
+                        type="file"
+                        id="mayor"
+                        name="mayor"
+                        accept=".xlsx,.xls"
+                        required
+                    >
+
+                    <div
+                        id="nombreMayor"
+                        class="nombre-archivo"
+                    >
+                        Ningún archivo seleccionado
+                    </div>
+
+                </label>
+
+
+                <div class="separador"></div>-->
+
+                <!-- LIQUIDACIONES -->
+
+                <label
+                    for="liquidaciones"
+                    class="zona-archivo"
+                >
+
+                    <h2>
+                        Liquidaciones
+                    </h2>
+
+                    <p>
+                        Seleccione el archivo de
+                        comisiones e impuestos.
+                    </p>
+
+                    <input
+                        type="file"
+                        id="liquidaciones"
+                        name="liquidaciones"
+                        accept=".xlsx,.xls"
+                        required
+                    >
+
+                    <div
+                        id="nombreLiquidaciones"
+                        class="nombre-archivo"
+                    >
+                        Ningún archivo seleccionado
+                    </div>
+
+                </label>
+
+
+                <div class="separador"></div>
+
+
+                <!-- MAYOR BANCO -->
+
+                <label
+                    for="banco"
+                    class="zona-archivo"
+                >
+
+                    <h2>
+                        Mayor del Banco
+                    </h2>
+
+                    <p>
+                        Seleccione el archivo con
+                        los créditos bancarios.
+                    </p>
+
+                    <input
+                        type="file"
+                        id="banco"
+                        name="banco"
+                        accept=".xlsx,.xls"
+                        required
+                    >
+
+                    <div
+                        id="nombreBanco"
+                        class="nombre-archivo"
+                    >
+                        Ningún archivo seleccionado
+                    </div>
+
+                </label>
+
+
+                <!-- BOTÓN -->
+
+                <div class="acciones">
+
+                    <button
+                        type="button"
+                        id="btnDescargarExcel"
+                        class="boton-principal"
+                    >
+                        Descargar Excel
+                    </button>
+
+                </div>
+
+            </form>
+
+
+            <!-- SPINNER -->
+
+            <div
+                id="spinner"
+                class="spinner-contenedor oculto"
+            >
+                <div class="spinner"></div>
             </div>
 
-            <span class="open-link">Abrir →</span>
-        </a>
 
-        <a
-            id="reporte-pagos"
-            class="converter-card"
-            href="/pago-facil/"
-            target="_blank"
-            rel="noopener noreferrer"
-        >
-            <div class="converter-icon">💵</div>
+            <!-- ESTADO -->
 
-            <div class="converter-content">
-                <h4>Conversión de Reportes</h4>
+            <div
+                id="estado"
+                class="estado"
+            ></div>
+
+
+            <!-- RESUMEN -->
+
+            <section
+                id="resumen"
+                class="informacion oculto"
+            >
+
+                <h3>
+                    Resultado del procesamiento
+                </h3>
 
                 <p>
-                    Pago Fácil /Pago Mis Cuentas/ Bnco San Juan/.
+                    Registros Mayor:
+                    <strong id="cantidadMayor">
+                        0
+                    </strong>
                 </p>
-
-                <span class="port">Abrir conversor</span>
-            </div>
-
-            <span class="open-link">Abrir →</span>
-        </a>
-
-        <a
-            id="pago-mis-cuentas"
-            class="converter-card"
-            href="/conversor_pago_mis_cuentas/"
-            target="_blank"
-            rel="noopener noreferrer"
-        >
-            <img class="icon" src="./img/deposit_2976387.png" alt="deposit_saldo">
-
-            <div class="converter-content">
-                <h2>Reportes de liquidacion</h2>
-                <span>Pago Mis Cuentas</span>
 
                 <p>
-                    <span class="cartel">
-                        Importante: ¡Formatos en html/pdf unicamente!
-                    </span>
+                    Liquidaciones:
+                    <strong id="cantidadLiquidaciones">
+                        0
+                    </strong>
                 </p>
-
-                <span class="port">Abrir conversor</span>
-            </div>
-
-            <span class="open-link">Abrir →</span>
-        </a>
-        <!--
-        
-        <a
-            class="converter-card"
-            href="/link-pagos/"
-            target="_blank"
-            rel="noopener noreferrer"
-        >
-            <div class="converter-icon">🏦</div>
-
-            <div class="converter-content">
-                <h4>Resumen de liquidacion</h4>
-                <span>Banco San Juan</span>
 
                 <p>
-                    Conversión de archivos TXT a Excel de resumen de liquidacion
-                    de Banco San Juan.
+                    Movimientos Banco:
+                    <strong id="cantidadBanco">
+                        0
+                    </strong>
                 </p>
 
-                <span class="port">Abrir conversor</span>
-            </div>
+            </section>
 
-            <span class="open-link">Abrir →</span>
-        </a>
-        -->
-        <a
+        </section>
 
-            id="info-liq"
-            class="converter-card"
-            href="/liquidacion/"
-            target="_blank"
-            rel="noopener noreferrer"
-        >
-
-        <div class="converter-icon">🏦</div>
-
-            <div class="converter-content">
-            <h4>Informe de Liquidación</h4>
-            <h5>San Juan Servicios</h5>
-            <h5>Pago facil</h5>
-
-            <span class="port">Abrir conversor</span>
-        </div>
-
-        <span class="open-link">Abrir →</span>
-        </a>
-
-
-        <a
-            id="bolestas-servicios"
-            class="converter-card"
-            href="/pdf-a-Excel-Boletas-Servicios/"
-            target="_blank"
-            rel="noopener noreferrer"
-        >
-        
-        <img class="icon-informe2" src="./img/pdf.png" alt="agreement">
-
-        <div class="converter-content">
-            <h4>Convertir de PDF a Excel</h4>
-
-            <p>
-                Facturas de Servicios.
-            </p>
-
-            <span class="port">Abrir conversor</span>
-        </div>
-
-            <span class="open-link">Abrir →</span>
-        </a>
-
-        
-        <a
-            id="liq-tarjetas"
-            class="converter-card"
-            href="/PDF_a_Excel_Liquidacion_Tarjetas/"
-            target="_blank"
-            rel="noopener noreferrer"
-        >
-
-        <img class="icon-informe2" src="./img/pdf copy.png" alt="pdf-liquidacion-tarjetas">
-
-        <div class="converter-content">
-
-            <h4> Liquidación de Tarjetas</h4>
-
-            <p>
-                Conversión de resumen PDF de
-                tarjetas de crédito y débito a Excel.
-            </p>
-
-            <span class="port">
-                Abrir conversor
-            </span>
-
-        </div>
-
-        <span class="open-link">
-            Abrir →
-        </span>
-
-        </a>
-
-        <a
-            id="bco-galicia"
-            class="converter-card"
-            href="/PDF_Resumen_Visa_Galicia/"
-            target="_blank"
-            rel="noopener noreferrer"
-        >
-
-        <img class="icon-informe2" src="./img/banco-galicia-logo-0-768x768.png" alt="pdf-liquidacion-tarjetas">
-
-        <div class="converter-content">
-
-            <h4>Resumen de liquidacion BCO GALICIA</h4>
-
-            <p>
-                Conversión de resumen PDF de
-                tarjetas de crédito y débito a Excel.
-            </p>
-
-        <span class="port">
-            Abrir conversor
-        </span>
-
-        </div>
-
-        <span class="open-link">
-            Abrir →
-        </span>
-
-        </a>
-
-
-        <a
-            id="comisiones"
-            class="converter-card"
-            href="/Resumen_Comisiones/"
-            target="_blank"
-            rel="noopener noreferrer"
-        >
-
-            <div class="converter-content">
-
-            <h4>Conciliacion de Comisiones</h4>
-
-            <p>
-                Conversión de resumen de comisiones de pago facil
-                y Conciliacion automatica con resumen de liquidacion.
-            </p>
-
-        <span class="port">
-            Abrir conversor
-        </span>
-
-        </div>
-
-        <span class="open-link">
-            Abrir →
-        </span>
-
-        </a>
-
-
-
-    <!--Tarjeta Conciliador automatico-->
-
-        <a
-            id="auto-conciliar"
-            class="converter-card-conciliador"
-            href="/conciliador/"
-            target="_blank"
-            rel="noopener noreferrer"
-        >
-
-        <img class="icon-informe2" src="./img/arrow_arrows_communication_data_left_right_travel_icon_123767.svg" alt="arrow_arrows_communication_data_left_right_travel">
-        <div class="converter-content">
-            <h4>Conciliador</h4>
-
-            <p>
-                Conciliacion automática
-            </p>
-        <span class="port">Abrir conciliador</span>
-        </div> 
-        <span class="open-link">
-            Abrir →
-        </span>
-            
-    </a>
-        
-    </div>
-    </section>
     </main>
-<footer>
-    <img src="./img/interredes-logo-alt.png" alt="interredes-mas-cerca">
-    <p>
-        Direcciones
-        Av. Córdoba 1375 (O) - Capital
-        Rivadavia 182 (O) - Capital
-        Sarmiento 702 esq. Rivadavia - Jáchal
-        Av. Santo Domingo s/n - Iglesia
 
-        Contacto
-        264 417 0123 - WhatsApp - 
-        Ventas y Soporte Técnico 466 5050 - 
-        Ventas y Soporte Técnico 264 488 2850 - 
-        Oficina Jachal 264 439 1403 - 
-        Oficina Iglesia
-    </p>
+
+    
+
+</body>
+<footer>
+    <img
+        class="interredes-logo-alt"
+        src="./interredes-logo-alt.png"
+        alt="INTERREDES"
+    >
+    
     <script src="./script.js"></script>
 </footer>
-</body>
 
 </html>
