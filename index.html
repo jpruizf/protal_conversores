@@ -2,48 +2,141 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Conversor Multibanco de Liquidaciones</title>
+
+    <title>
+        Conversor Informe de Liquidación
+    </title>
+
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="./logo.png" type="image/png">
 </head>
+
 <body>
-    <img class="logo-tipo" src="./Logo tipo.jpg" alt="interredes-logo">
-    <div class="container">
-        
-        <h2>Conversor de Liquidaciones</h2>
-        
-        <div class="form-group">
-            <label for="bancoSelect">1. Selecciona el formato / Banco correspondiente:</label>
-            <select id="bancoSelect">
-                <option value="supervielle">Convertir html</option>
-                <option value="banco_b">Convertir HTML</option>
-                <option value="pdf">Convertir PDF</option>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label>2. Carga el archivo HTML original:</label>
-            <div class="box" id="dropzone" onclick="document.getElementById('fileInput').click()">
-                Arrastra aquí tu archivo .html o haz clic para buscarlo.
-                <input type="file" 
-                    id="fileInput" 
-                    accept=".pdf,application/pdf" 
-                    multiple 
-                    style="display:none">
-                </div>
-        </div>
-
-        <div id="status"></div>
-        <button id="btnConvertir">Convertir y Descargar Excel</button>
+    <div>
+        <img class="logo-tipo" src="./Logo tipo.jpg" alt="logo-interredes">
     </div>
-    <!-- Vinculamos el archivo JS separado (defer asegura que cargue cuando el HTML esté listo) -->
+    <main class="contenedor">
+
+        <section class="tarjeta">
+
+            <div class="encabezado">
+
+                <div>
+                    <h1>
+                        Informe de Liquidación
+                    </h1>
+
+                    <p class="subtitulo">
+                        Conversor TXT a Excel
+                    </p>
+                </div>
+            </div>
+
+            <div class="descripcion">
+                <p>
+                    Seleccione el informe de liquidación
+                    en formato TXT.
+                </p>
+
+                <p>
+                    El sistema consolidará automáticamente
+                    la cantidad de transacciones y el importe
+                    bruto de las fechas coincidentes.
+                </p>
+            </div>
+
+            <form
+                id="formConversor"
+                class="formulario"
+            >
+
+                <div
+                    id="zonaArchivo"
+                    class="zona-archivo"
+                >
+
+                    <input
+                        type="file"
+                        id="archivoTXT"
+                        accept=".txt,text/plain"
+                        multiple
+                    >
+                    <p class="texto-seleccion">
+                        Arrastre el archivo TXT aquí
+                    </p>
+
+                    <p class="texto-alternativo">
+                        o
+                    </p>
+
+                    <button
+                        type="button"
+                        id="botonSeleccionar"
+                        class="boton boton-secundario"
+                    >
+                        Seleccionar archivo
+                    </button>
+
+                    <p
+                        id="nombreArchivo"
+                        class="nombre-archivo"
+                    >
+                        Ningún archivo seleccionado
+                    </p>
+
+                </div>
+
+                <button
+                    type="submit"
+                    id="botonConvertir"
+                    class="boton boton-principal"
+                    disabled
+                >
+                    Convertir a Excel
+                </button>
+
+            </form>
+
+            <div
+                id="estadoProceso"
+                class="estado oculto"
+                role="status"
+                aria-live="polite"
+            >
+                <div
+                    id="spinner"
+                    class="spinner oculto"
+                ></div>
+
+                <span id="mensajeEstado"></span>
+            </div>
+
+        </section>
+
+    </main>
+
+
 </body>
 <footer>
-    <span>
-        <img class="logo" src="interredes-logo-alt.png" alt="interredes-mas-cerca">
-    </span>
-   
-    <script src="app.js" defer></script>
+    <script src="scrips.js"></script>
+    <img src="interredes-logo-alt.png" alt="interredes-logo-alt">
+    <!--
+        <p>
+            Direcciones
+            Av. Córdoba 1375 (O) - Capital
+            Rivadavia 182 (O) - Capital
+            Sarmiento 702 esq. Rivadavia - Jáchal
+            Av. Santo Domingo s/n - Iglesia
+
+            Contacto
+            264 417 0123 - WhatsApp - 
+            Ventas y Soporte Técnico 466 5050 - 
+            Ventas y Soporte Técnico 264 488 2850 - 
+            Oficina Jachal 264 439 1403 - 
+            Oficina Iglesia
+        </p>
+    -->
 </footer>
 </html>
