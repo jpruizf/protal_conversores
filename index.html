@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
 
@@ -9,174 +8,106 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>
-        Resumen Comisiones Pago Fácil
-    </title>
+    <title>Conversor TXT a Excel</title>
 
-    <link
-        rel="stylesheet"
-        href="./style.css"
-    >
+    <link rel="stylesheet" href="./css/style.css">
+    <link rel="icon" href="./img/logo.png" type="image/png">
+    <!-- Librería para generar archivos Excel -->
+    <script src="./libs/xlsx.full.min.js"></script>
 
-    <link
-        rel="icon"
-        href="./logo.png"
-        type="image/png"
-    >
+    <!-- Script principal del conversor -->
+    <script type="module" src="./js/app.js" defer></script>
 </head>
 
 <body>
+    <header class="encabezado-principal">
+        <img
+            src="./img/Logo tipo.jpg"
+            alt="Logo de INTERREDES"
+            class="logo-principal"
+        >
+    </header>
 
-    <img
-        class="inter-logo"
-        src="./Logo tipo.jpg"
-        alt="interredes-logo-alt"
-    >
-
-    <main class="contenedor">
-
-        <section class="tarjeta">
-
-            <header class="encabezado">
-
-                <h1>
-                    Resumen Comisiones Pago Fácil → Excel
-                </h1>
-
-                <p>
-                    Seleccioná los reportes PDF de comisiones
-                    y el archivo Excel de liquidaciones.
-                </p>
-
+    <main class="contenedor-principal">
+        <section class="tarjeta-conversor">
+            <header class="titulo-conversor">
+                <h1>Conversor de Resumen de liquidación</h1>
             </header>
 
-
-            <!-- PDF COMISIONES -->
-
-            <label
-                for="archivoPDF"
-                class="zona-archivo"
-                id="zonaArchivoPDF"
+            <div
+                id="drop-zone"
+                class="zona-carga"
+                role="button"
+                tabindex="0"
+                aria-label="Seleccionar o arrastrar un archivo TXT"
             >
-
-                <h2>
-                    Seleccionar reportes de comisiones
-                </h2>
-
-                <p>
-                    Hacé clic aquí para elegir uno o varios archivos
-                </p>
-
-                <p>
-                    Formato permitido: PDF
-                </p>
-
                 <input
                     type="file"
-                    id="archivoPDF"
-                    accept="application/pdf"
-                    multiple
+                    id="file-input"
+                    accept=".txt,text/plain"
+                    hidden
                 >
 
-            </label>
+                <div class="contenido-carga">
+                    <span class="icono-archivo" aria-hidden="true">📄</span>
 
-
-            <div
-                id="pdfSeleccionados"
-                class="nombre-archivo"
-            >
-                Ningún PDF seleccionado
+                    <p>
+                        Arrastrá tu archivo TXT aquí o
+                        <span class="texto-buscar">buscalo en tu equipo</span>
+                    </p>
+                </div>
             </div>
-
-
-            <!-- EXCEL LIQUIDACIONES -->
-
-            <label
-                for="archivoExcel"
-                class="zona-archivo"
-                id="zonaArchivoExcel"
-            >
-
-                <h2>
-                    Seleccionar resumen de liquidaciones
-                </h2>
-
-                <p>
-                    Hacé clic aquí para elegir el archivo
-                </p>
-
-                <p>
-                    Formato permitido: Excel (.xlsx)
-                </p>
-
-                <input
-                    type="file"
-                    id="archivoExcel"
-                    accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                >
-
-            </label>
-
-
+            <button id="convert-button"
+                class="boton-convertir"
+                type="button"
+                disabled>
+                Convertir a Excel
+            </button>
             <div
-                id="excelSeleccionado"
-                class="nombre-archivo"
+                id="status-container"
+                class="contenedor-estado oculto"
+                aria-live="polite"
             >
-                Ningún Excel seleccionado
+                <div id="status-message" class="mensaje-estado"></div>
             </div>
-
-
-            <!-- ACCIONES -->
-
-            <div class="acciones">
-
-                <button
-                    type="button"
-                    id="btnConvertir"
-                    class="boton-principal"
-                >
-                    Generar Excel
-                </button>
-
-            </div>
-
-
-            <!-- SPINNER -->
-
-            <div
-                id="spinnerContenedor"
-                class="spinner-contenedor oculto"
-            >
-
-                <div class="spinner"></div>
-
-            </div>
-
-
-            <!-- ESTADO -->
-
-            <div
-                id="estado"
-                class="estado"
-            ></div>
-
         </section>
-
     </main>
 
+    <footer class="pie-pagina">
+        <div class="pie-contenido">
+            <img
+                src="./img/interredes-logo-alt.png"
+                alt="Logo alternativo de INTERREDES"
+                class="logo-pie"
+            >
+        <!---
+            <div class="informacion-pie">
+                <section>
+                    <h2>Direcciones</h2>
 
-    <footer>
+                    <address>
+                        <p>Av. Córdoba 1375 (O) - Capital</p>
+                        <p>Rivadavia 182 (O) - Capital</p>
+                        <p>Sarmiento 702 esq. Rivadavia - Jáchal</p>
+                        <p>Av. Santo Domingo s/n - Iglesia</p>
+                    </address>
+                </section>
 
-        <img
-            class="interredes-logo-alt"
-            src="./interredes-logo-alt.png"
-            alt="interredes"
-        >
+                <section>
+                    <h2>Contacto</h2>
 
-        <script src="./script.js"></script>
-
+                    <ul>
+                        <li>WhatsApp: 264 417 0123</li>
+                        <li>Ventas y Soporte Técnico: 466 5050</li>
+                        <li>Ventas y Soporte Técnico: 264 488 2850</li>
+                        <li>Oficina Jáchal: 264 439 1403</li>
+                        <li>Oficina Iglesia</li>
+                    </ul>
+                </section>
+            </div>
+        -->    
+            
+        </div>
     </footer>
-
 </body>
-
 </html>
