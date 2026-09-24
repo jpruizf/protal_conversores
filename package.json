@@ -1,19 +1,13 @@
 {
-  "name": "herramientas_interrredes_04_07_26",
+  "name": "portal-conversores-interredes",
   "version": "1.0.0",
-  "main": "ecosystem.config.js",
+  "description": "Portal principal de conversores de INTERREDES",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
-  "devDependencies": {
-    "pm2": "^7.0.3"
+    "start": "node server.js"
   },
   "dependencies": {
-    "multer": "^2.2.0",
-    "pdfjs-dist": "^5.6.205"
+    "express": "^4.21.2",
+    "http-proxy-middleware": "^3.0.7"
   }
 }
