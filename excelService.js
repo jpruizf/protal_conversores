@@ -1,524 +1,208 @@
-const ExcelJS = require("exceljs");
+const XLSX = window.XLSX;
 
+export function generarExcelWeb(
+    datos,
+    resumenReporte = null,
+    nombreArchivo = "Reporte_Pagos_Link.xlsx"
+) {
+    console.log("Entró a generarExcelWeb");
 
-/**
- * Formato moneda para Excel.
- */
-const formatoMoneda =
-    '$ #,##0.00;[Red]-$ #,##0.00';
-
-
-/**
- * Formato entero.
- */
-const formatoEntero =
-    '#,##0';
-
-
-/**
- * Aplica estilo al encabezado.
- */
-function aplicarEstiloEncabezado(row) {
-    row.height = 32;
-
-    row.eachCell(cell => {
-        cell.font = {
-            name: "Segoe UI",
-            size: 10,
-            bold: true,
-            color: {
-                argb: "FFFFFFFF"
-            }
-        };
-
-        cell.fill = {
-            type: "pattern",
-            pattern: "solid",
-            fgColor: {
-                argb: "00B8FF"
-            }
-        };
-
-        cell.alignment = {
-            vertical: "middle",
-            horizontal: "center",
-            wrapText: true
-        };
-
-        cell.border = {
-            bottom: {
-                style: "thin",
-                color: {
-                    argb: "FFFFFFFF"
-                }
-            }
-        };
-    });
-}
-
-
-/**
- * Aplica formato según
- * el estado de conciliación.
- */
-function aplicarEstiloEstado(cell, estado) {
-    cell.font = {
-        name: "Segoe UI",
-        size: 10,
-        bold: true
-    };
-
-    cell.alignment = {
-        vertical: "middle",
-        horizontal: "center",
-        wrapText: true
-    };
-
-
-    if (estado === "COINCIDE") {
-        cell.fill = {
-            type: "pattern",
-            pattern: "solid",
-            fgColor: {
-                argb: "FFC6EFCE"
-            }
-        };
-
-        cell.font = {
-            ...cell.font,
-            color: {
-                argb: "FF006100"
-            }
-        };
-
-        return;
+    if (!XLSX) {
+        throw new Error(
+            "No se pudo cargar la librería XLSX. Verificá la conexión o el archivo local de la librería."
+        );
     }
 
-
-    if (
-        estado === "SIN LIQUIDACIONES"
-    ) {
-        cell.fill = {
-            type: "pattern",
-            pattern: "solid",
-            fgColor: {
-                argb: "FFFFC7CE"
-            }
-        };
-
-        cell.font = {
-            ...cell.font,
-            color: {
-                argb: "FF9C0006"
-            }
-        };
-
-        return;
+    if (!Array.isArray(datos) || datos.length === 0) {
+        throw new Error("No hay registros para exportar.");
     }
 
+    const datosMapeados = datos.map((registro) => ({
+        "FECHA": registro.fecha || "",
+        "BANCO EMISOR": registro.bancoEmisor || "",
+        "CANTIDAD": registro.cantidad || 0,
+        "IMP. A COBRAR": registro.importeCobrar || 0,
+        "COMISIONES PAGADAS": registro.comisionesPagadas || 0,
+        "IVA COMISIONES": registro.ivaComisiones || 0,
+        "PERCEPCION": registro.percepcion || 0,
+        "RETENCION IVA": registro.retencionIVA || 0,
+        "RETENCION GANANCIAS": registro.retencionGanancias || 0,
+        "RETENCION IIBB": registro.retencionIIBB || 0,
+        "IMPORTE NETO": registro.importeNeto || 0
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(datosMapeados);
 
     /*
-     * Estados que requieren revisión.
+     * Agregar resumen al final de la tabla.
      */
-    cell.fill = {
-        type: "pattern",
-        pattern: "solid",
-        fgColor: {
-            argb: "FFFFEB9C"
+    if (resumenReporte) {
+        let filaActual = datosMapeados.length + 3;
+
+        const filasResumen = [
+            [],
+            ["RESUMEN DEL REPORTE"],
+            ["Fecha", resumenReporte.fecha || ""]
+        ];
+
+        if (resumenReporte.totales) {
+            filasResumen.push(
+                [],
+                ["TOTALES GENERALES"],
+                ["Cantidad total", resumenReporte.totales.cantidad || 0],
+                [
+                    "Importe a cobrar",
+                    resumenReporte.totales.importeCobrar || 0
+                ],
+                [
+                    "Comisiones pagadas",
+                    resumenReporte.totales.comisionesPagadas || 0
+                ],
+                [
+                    "IVA comisiones",
+                    resumenReporte.totales.ivaComisiones || 0
+                ],
+                [
+                    "Percepción",
+                    resumenReporte.totales.percepcion || 0
+                ],
+                [
+                    "Retención IVA",
+                    resumenReporte.totales.retencionIVA || 0
+                ],
+                [
+                    "Retención ganancias",
+                    resumenReporte.totales.retencionGanancias || 0
+                ],
+                [
+                    "Retención IIBB",
+                    resumenReporte.totales.retencionIIBB || 0
+                ],
+                [
+                    "Importe neto emisores",
+                    resumenReporte.totales.importeNeto || 0
+                ]
+            );
         }
-    };
 
-    cell.font = {
-        ...cell.font,
-        color: {
-            argb: "FF9C6500"
+        if (resumenReporte.bancoAdherente) {
+            filasResumen.push(
+                [],
+                ["BANCO ADHERENTE"],
+                [
+                    "Comisión Banco Adherente",
+                    resumenReporte.bancoAdherente
+                        .comisionBancoAdherente || 0
+                ],
+                [
+                    "IVA Banco Adherente",
+                    resumenReporte.bancoAdherente
+                        .ivaBancoAdherente || 0
+                ]
+            );
         }
-    };
-}
 
+        if (
+            resumenReporte.totalNeto !== null &&
+            resumenReporte.totalNeto !== undefined
+        ) {
+            filasResumen.push(
+                [],
+                ["TOTAL NETO", resumenReporte.totalNeto]
+            );
+        }
 
-/**
- * Genera el Excel final
- * con el resultado de las conciliaciones.
- */
-async function generarExcelConciliacion(
-    resultados
-) {
-    if (!Array.isArray(resultados)) {
-        throw new Error(
-            "Los resultados deben ser un array."
+        XLSX.utils.sheet_add_aoa(
+            worksheet,
+            filasResumen,
+            {
+                origin: `A${filaActual}`
+            }
         );
     }
 
-
-    const workbook =
-        new ExcelJS.Workbook();
-
-
-    workbook.creator =
-        "INTERREDES";
-
-    workbook.created =
-        new Date();
-
-
-    const worksheet =
-        workbook.addWorksheet(
-            "Resumen Comisiones"
-        );
-
-
-    /**
-     * Configuración de columnas.
+    /*
+     * Formato de importes.
      */
-    worksheet.columns = [
-        {
-            header:
-                "FECHA EMISIÓN COMISIÓN",
-            key:
-                "fechaEmision",
-            width:
-                18
-        },
-        {
-            header:
-                "TOTAL REGISTROS PDF",
-            key:
-                "totalRegistrosPDF",
-            width:
-                18
-        },
-        {
-            header:
-                "TOTAL TRANSACCIONES LIQUIDACIÓN",
-            key:
-                "totalTransaccionesLiquidacion",
-            width:
-                24
-        },
-        {
-            header:
-                "TOTAL RECAUDADO PDF",
-            key:
-                "totalRecaudadoPDF",
-            width:
-                20
-        },
-        {
-            header:
-                "COMISIÓN",
-            key:
-                "comision",
-            width:
-                16
-        },
-        {
-            header:
-                "IVA S/COMISIÓN",
-            key:
-                "ivaComision",
-            width:
-                16
-        },
-        {
-            header:
-                "RET. R.G. 3130",
-            key:
-                "retencionRG3130",
-            width:
-                16
-        },
-        {
-            header:
-                "EFECTIVO",
-            key:
-                "efectivo",
-            width:
-                18
-        },
-        {
-            header:
-                "DÉBITO",
-            key:
-                "debito",
-            width:
-                18
-        },
-        {
-            header:
-                "PAGOS QR",
-            key:
-                "pagosQR",
-            width:
-                18
-        },
-        {
-            header:
-                "FECHA LIQUIDACIÓN",
-            key:
-                "fechaLiquidacion",
-            width:
-                18
-        },
-        {
-            header:
-                "IMPORTE BRUTO LIQUIDACIONES",
-            key:
-                "importeBrutoLiquidaciones",
-            width:
-                24
-        },
-        {
-            header:
-                "DIFERENCIA IMPORTE",
-            key:
-                "diferenciaImporte",
-            width:
-                18
-        },
-        {
-            header:
-                "DIFERENCIA REGISTROS",
-            key:
-                "diferenciaRegistros",
-            width:
-                18
-        },
-        {
-            header:
-                "CANTIDAD DE LIQUIDACIONES",
-            key:
-                "cantidadLiquidaciones",
-            width:
-                22
-        },
-        {
-            header:
-                "ESTADO",
-            key:
-                "estado",
-            width:
-                30
-        }
-    ];
-
-
-    /**
-     * Estilo encabezado.
-     */
-    aplicarEstiloEncabezado(
-        worksheet.getRow(1)
+    aplicarFormatoMoneda(
+        worksheet,
+        datosMapeados.length,
+        [
+            3, 4, 5, 6, 7, 8, 9, 10
+        ]
     );
 
-
-    /**
-     * Agregamos los resultados.
+    /*
+     * Ajuste del ancho de las columnas.
      */
-    resultados.forEach(
-        resultado => {
-
-            const row =
-                worksheet.addRow({
-                    fechaEmision:
-                        resultado.fechaEmision,
-
-                    totalRegistrosPDF:
-                        resultado.totalRegistrosPDF,
-
-                    totalTransaccionesLiquidacion:
-                        resultado
-                            .totalTransaccionesLiquidacion,
-
-                    totalRecaudadoPDF:
-                        resultado.totalRecaudadoPDF,
-
-                    comision:
-                        resultado.comision,
-
-                    ivaComision:
-                        resultado.ivaComision,
-
-                    retencionRG3130:
-                        resultado.retencionRG3130,
-
-                    efectivo:
-                        resultado.efectivo,
-
-                    debito:
-                        resultado.debito,
-
-                    pagosQR:
-                        resultado.pagosQR,
-
-                    fechaLiquidacion:
-                        resultado.fechaLiquidacion,
-
-                    importeBrutoLiquidaciones:
-                        resultado
-                            .importeBrutoLiquidaciones,
-
-                    diferenciaImporte:
-                        resultado.diferenciaImporte,
-
-                    diferenciaRegistros:
-                        resultado.diferenciaRegistros,
-
-                    cantidadLiquidaciones:
-                        resultado.cantidadLiquidaciones,
-
-                    estado:
-                        resultado.estado
-                });
-
-
-            row.height = 22;
-
-
-            /**
-             * Alineación general.
-             */
-            row.eachCell(cell => {
-                cell.font = {
-                    name: "Segoe UI",
-                    size: 10
-                };
-
-                cell.alignment = {
-                    vertical: "middle"
-                };
-            });
-
-
-            /**
-             * Enteros.
-             */
-            row.getCell(
-                "totalRegistrosPDF"
-            ).numFmt =
-                formatoEntero;
-
-            row.getCell(
-                "totalTransaccionesLiquidacion"
-            ).numFmt =
-                formatoEntero;
-
-            row.getCell(
-                "diferenciaRegistros"
-            ).numFmt =
-                formatoEntero;
-
-            row.getCell(
-                "cantidadLiquidaciones"
-            ).numFmt =
-                formatoEntero;
-
-
-            /**
-             * Importes.
-             */
-            [
-                "totalRecaudadoPDF",
-                "comision",
-                "ivaComision",
-                "retencionRG3130",
-                "efectivo",
-                "debito",
-                "pagosQR",
-                "importeBrutoLiquidaciones",
-                "diferenciaImporte"
-            ].forEach(key => {
-                row.getCell(key).numFmt =
-                    formatoMoneda;
-            });
-
-
-            /**
-             * Resaltamos diferencias.
-             */
-            if (
-                Math.abs(
-                    Number(
-                        resultado
-                            .diferenciaImporte ||
-                        0
-                    )
-                ) > 0.01
-            ) {
-                row.getCell(
-                    "diferenciaImporte"
-                ).fill = {
-                    type: "pattern",
-                    pattern: "solid",
-                    fgColor: {
-                        argb:
-                            "FFFFC7CE"
-                    }
-                };
-            }
-
-
-            if (
-                Number(
-                    resultado
-                        .diferenciaRegistros ||
-                    0
-                ) !== 0
-            ) {
-                row.getCell(
-                    "diferenciaRegistros"
-                ).fill = {
-                    type: "pattern",
-                    pattern: "solid",
-                    fgColor: {
-                        argb:
-                            "FFFFC7CE"
-                    }
-                };
-            }
-
-
-            /**
-             * Estado.
-             */
-            aplicarEstiloEstado(
-                row.getCell("estado"),
-                resultado.estado
-            );
-        }
-    );
-
-
-    /**
-     * Fijamos encabezado.
-     */
-    worksheet.views = [
-        {
-            state: "frozen",
-            ySplit: 1
-        }
+    worksheet["!cols"] = [
+        { wch: 14 },
+        { wch: 32 },
+        { wch: 12 },
+        { wch: 18 },
+        { wch: 20 },
+        { wch: 16 },
+        { wch: 15 },
+        { wch: 18 },
+        { wch: 22 },
+        { wch: 18 },
+        { wch: 18 }
     ];
 
-
-    /**
-     * Filtro automático.
+    /*
+     * Aplicar autofiltro a la tabla principal.
      */
-    worksheet.autoFilter = {
-        from: "A1",
-        to: "P1"
+    worksheet["!autofilter"] = {
+        ref: `A1:K${datosMapeados.length + 1}`
     };
 
-
-    /**
-     * Generamos buffer.
+    /*
+     * Congelar encabezados.
      */
-    const buffer =
-        await workbook.xlsx.writeBuffer();
+    worksheet["!freeze"] = {
+        xSplit: 0,
+        ySplit: 1
+    };
 
+    const workbook = XLSX.utils.book_new();
 
-    return buffer;
+    XLSX.utils.book_append_sheet(
+        workbook,
+        worksheet,
+        "Pagos Link"
+    );
+
+    XLSX.writeFile(
+        workbook,
+        nombreArchivo
+    );
 }
 
+function aplicarFormatoMoneda(
+    worksheet,
+    cantidadRegistros,
+    columnasMonetarias
+) {
+    /*
+     * Los datos comienzan en la fila 2 porque
+     * la fila 1 contiene los encabezados.
+     */
+    for (
+        let fila = 2;
+        fila <= cantidadRegistros + 1;
+        fila++
+    ) {
+        for (const columna of columnasMonetarias) {
+            const referencia = XLSX.utils.encode_cell({
+                r: fila - 1,
+                c: columna
+            });
 
-module.exports = {
-    generarExcelConciliacion
-};
+            if (worksheet[referencia]) {
+                worksheet[referencia].t = "n";
+                worksheet[referencia].z =
+                    '$ #,##0.00';
+            }
+        }
+    }
+}
