@@ -1,13 +1,14 @@
 {
-  "name": "portal-conversores-interredes",
-  "version": "1.0.0",
-  "description": "Portal principal de conversores de INTERREDES",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js"
-  },
-  "dependencies": {
-    "express": "^4.21.2",
-    "http-proxy-middleware": "^3.0.7"
-  }
+    "name": "conciliador-pagos",
+    "version": "1.0.0",
+    "description": "Sistema de conciliacion automatica de pagos INTERREDES",
+    "main": "server.js",
+    "scripts": {
+        "start": "node server.js"
+    },
+    "dependencies": {
+        "exceljs": "^4.4.0",
+        "express": "^5.2.1",
+        "multer": "^2.0.2"
+    }
 }
