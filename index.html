@@ -2,47 +2,52 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversor de Archivos Bancarios</title>
+    <link rel="stylesheet" href="./style.css">
     <link rel="icon" href="./logo.png" type="image/png">
-    <title>Conversor TXT a Excel</title>
 </head>
-
 <body>
-    <main>
-        <img class="logo-principal" src="./Logo tipo.jpg" alt="logo-interredes">
-        <div class="container">
-            <h1>Conversor TXT a Excel</h1>
-            <h4>(REPORTES PAGO FACIL)</h4>
-            <div class="conversor-box">
-                <form id="formulario" action="./convertir" method="POST" enctype="multipart/form-data">
-                    <input type="file" id="archivoTXT" name="archivoTXT" accept=".txt" required>
-                    <button type="submit">Convertir</button>
-                </form>
-            </div>
-            <p id="mensaje"></p>
-            <button id="btnDescargar" type="button" style="display: none;"> Descargar archivo convertido </button>  
-        </div>    
-    </main>
-</body>
-<footer>
-    <script src="script.js"></script>
-    <img class="logo" src="interredes-logo-alt.png" alt="interredes">
-    <!--
-         <p>
-        Direcciones
-        Av. Córdoba 1375 (O) - Capital
-        Rivadavia 182 (O) - Capital
-        Sarmiento 702 esq. Rivadavia - Jáchal
-        Av. Santo Domingo s/n - Iglesia
 
-        Contacto
-        264 417 0123 - WhatsApp - 
-        Ventas y Soporte Técnico 466 5050 - 
-        Ventas y Soporte Técnico 264 488 2850 - 
-        Oficina Jachal 264 439 1403 - 
-        Oficina Iglesia
-    </p>
-    -->
-   
+    <img class="inter-logo" src="./Logo tipo.jpg" alt="logo-interredes">
+    <div class="container">
+        <h1>Conversor Bancario de Liquidacion</h1>
+
+        <form action="./upload" method="POST" enctype="multipart/form-data">
+            
+            <div class="form-group">
+                <label for="formatType">1. Selecciona el Tipo de Formato</label>
+                <select name="formatType" id="formatType">
+                    <option value="AUTO">Autodetectar formato automáticamente</option>
+                    <option value="LIQC">Variante Avanzada (LIQC - Comercios)</option>
+                    <option value="LIQD">Variante Estándar (LIQD / LDEB)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>2. Carga tu archivo .txt o .dat</label>
+                <div class="file-drop-area" id="dropArea">
+                    <div class="folder-icon"></div>
+                    <div class="drop-text" id="dropText">Arrastra tu archivo aquí o haz clic para buscar</div>
+                    <input type="file" name="file" class="file-input" id="fileInput" required>
+                </div>
+                <div id="file-name"></div>
+            </div>
+
+            <button type="submit" class="btn-submit">Procesar y Descargar Excel</button>
+        </form>
+    </div>
+    <script src="./js/main.js"></script>
+</body>
+<footer class="pie-pagina">
+    <div class="pie-interior">
+        <div class="contenedor-logo-pie">
+            <img
+                class="logo-pie-pagina"
+                src="interredes-logo-alt.png"
+                alt="Más Interredes"
+            >
+        </div>
+    </div>
 </footer>
 </html>

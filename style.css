@@ -1,295 +1,194 @@
-/* =========================================
-   CONFIGURACIÓN GENERAL
-   ========================================= */
+:root {
+    --primary-color: #ef8119;
+    --primary-hover: #8e9195;
+    --bg-color: #f4f6f9;
+    --card-color: #ffffff;
+    --text-muted: #1c1b1b;
+    --border-color: #beb7b7;
+}
 
-* {
+body {
+    width: 100%;
+    min-height: 100vh;
+    min-height: 100%;
+    margin: 0;
+    padding: 0;
+    zoom: 0.8;
+}
+
+body {
+
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+
+    font-family: "Times New Roman", Times, serif;
+    background-color: #fefafa;
+    color: #333333;
+
+    overflow-x: hidden;
+}
+.inter-logo{
+    display: block;
+    width: 300px;
+    height: auto;
+
+    margin: 20px auto;
+}
+
+.container {
+    width: min(700px, 90%);
+
+    margin: 30px auto;
+
+    padding: 40px;
+
+    background: #fdfbfb;
+
+    border-radius: 10px;
+
+    box-shadow: 0 18px 45px rgba(36,18,18,.10);
+}
+
+h1 {
+    color: var(--primary-color);
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+.form-group {
+    text-align: left;
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #333333;
+    font-size: 14px;
+}
+
+select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 14px;
+    background-color: var(--card-color);
     box-sizing: border-box;
 }
 
-html,
-body {
-    min-height: 100%;
+.file-drop-area {
+    border: 2px dashed var(--primary-color);
+    border-radius: 6px;
+    padding: 30px;
+    background-color: #f8fafd;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    margin-bottom: 15px;
 }
 
-body {
-    min-height: 100vh;
-    margin: 0;
+.file-drop-area:hover, 
+.file-drop-area.dragover {
+    background-color: #edf2f9;
+}
+
+.folder-icon {
+    font-size: 40px; 
+    color: var(--primary-color);
+}
+
+.drop-text {
+    margin: 10px 0 0 0;
+    color: var(--text-muted);
+}
+
+.file-input {
+    display: none;
+}
+
+.btn-submit {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 14px 30px;
+    font-size: 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    width: 100%;
+    font-weight: bold;
+    transition: background 0.3s ease;
+}
+
+.btn-submit:hover {
+    background-color: var(--primary-hover);
+}
+
+#file-name {
+    margin-top: 10px;
+    font-weight: bold;
+    color: var(--primary-color);
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+.pie-pagina {
+    width: 100%;
+    box-sizing: border-box;
+
+    padding: 30px 50px;
+
+    background-color: #1c1b1b;
+    color: #ffffff;
+}
+.pie-interior {
+    width: 100%;
+    max-width: 1400px;
+
+    margin: 0 auto;
+}
+.contenedor-logo-pie {
+    width: 100%;
 
     display: flex;
-    flex-direction: column;
+    justify-content:first baseline;
 
-    font-family: "Times New Roman", Times, serif;
-
-    background-color: #fefafa;
-    color: #1e293b;
+    margin-bottom: 25px;
 }
 
+.logo-pie-pagina {
 
-/* =========================================
-   CONTENIDO PRINCIPAL
-   ========================================= */
+    display: block;
 
-.main-content {
+    max-width: 180px;
+
+    height: auto;
+
+    margin: 0 auto;
+}
+.pie-contenido {
+
+     width: 100%;
+
+    padding: max(18px, 5%);
+
+    background-color: #000;
+
+    color: #fff;
+}
+
+.pie-contenido section {
     flex: 1;
 
-    width: 100%;
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    padding: 30px 15px;
-
-    overflow: visible;
-}
-
-
-/* =========================================
-   CONTENEDOR DEL CONVERSOR
-   ========================================= */
-
-.container {
-    width: 320px;
-    max-width: calc(100% - 20px);
-
-    margin: 30px auto;
-    padding: 22px;
-
-    background: #ffffff;
-
-    border: 1px solid #d9dee7;
-    border-top: 4px solid #e77834;
-    border-radius: 14px;
-
-    box-shadow:
-        0 4px 10px rgba(0, 0, 0, 0.05),
-        0 12px 30px rgba(0, 0, 0, 0.10);
-
-    text-align: center;
-
-    transition:
-        box-shadow 0.25s ease,
-        transform 0.25s ease;
-}
-
-.container:hover {
-    transform: translateY(-2px);
-
-    box-shadow:
-        0 6px 14px rgba(0, 0, 0, 0.07),
-        0 16px 35px rgba(0, 0, 0, 0.13);
-}
-
-/* =========================================
-   TÍTULOS
-   ========================================= */
-
-h1,
-h2 {
-    width: 100%;
-
-    margin-top: 0;
-    margin-bottom: 1.5rem;
-
-    text-align: center;
-
-    font-size: 1.4rem;
-    color: #020202;
-}
-
-h4 {
-    margin-bottom: 1rem;
-
-    text-align: center;
-    color: #000000;
-}
-
-
-/* =========================================
-   LOGO
-   ========================================= */
-
-.logo {
-    display: block;
-    width: 200px;
-    height: auto;
-
-
-    transform: none;
-}
-
-.logo-principal {
-    display: block;
-    width: 200px;
-    height: auto;
-    margin: 0 auto 20px;
-}
-
-
-/* =========================================
-   FORMULARIO
-   ========================================= */
-
-form {
-    width: 100%;
-}
-
-
-/* =========================================
-   SELECTOR DE ARCHIVO
-   ========================================= */
-
-input[type="file"] {
-    display: block;
-
-    width: 100%;
-
-    margin-bottom: 1.5rem;
-    padding: 10px;
-
-    background: #f8fafc;
-
-    border: 1px solid #cbd5e1;
-    border-radius: 6px;
-
-    cursor: pointer;
-    font-size: 0.9rem;
-}
-
-
-input[type="file"]::file-selector-button {
-    margin-right: 10px;
-    padding: 6px 12px;
-
-    background: #e2e8f0;
-    color: #334155;
-
+    background: transparent;
     border: none;
-    border-radius: 4px;
-
-    cursor: pointer;
-    font-weight: 600;
-
-    transition: background 0.2s;
+    border-radius: 0;
+    box-shadow: none;
 }
 
-input[type="file"]::file-selector-button:hover {
-    background: #cbd5e1;
+.pie-contenido address {
+    font-style: normal;
 }
 
-
-/* =========================================
-   BOTONES
-   ========================================= */
-
-button,
-input[type="submit"] {
-    width: 100%;
-
-    padding: 12px 20px;
-
-    background-color: #e77834;
-    color: white;
-
-    border: none;
-    border-radius: 6px;
-
-    font-family: inherit;
-    font-size: 1rem;
-    font-weight: 600;
-
-    cursor: pointer;
-
-    transition:
-        background-color 0.2s ease,
-        transform 0.1s ease;
-}
-
-button:hover,
-input[type="submit"]:hover {
-    background-color: #727d79;
-}
-
-button:active,
-input[type="submit"]:active {
-    transform: scale(0.99);
-}
-
-
-/* =========================================
-   PIE DE PÁGINA
-   ========================================= */
-
-footer {
-    width: 100%;
-
-    margin-top: auto;
-    padding: 14px 20px;
-
-    background-color: #000000;
-
-    text-align: center;
-}
-
-footer p {
-    margin: 4px 0;
-
-    color: #fefafa;
-
-    text-align: center;
-    font-size: 0.85rem;
-}
-
-
-/* =========================================
-   RESPONSIVE
-   ========================================= */
-
-@media (max-width: 600px) {
-
-    .main-content {
-        padding: 20px 10px;
-        align-items: flex-start;
-    }
-
-    .container {
-        width: calc(100% - 20px);
-        max-width: 320px;
-
-        margin: 15px auto;
-        padding: 18px;
-    }
-
-    h1,
-    h2 {
-        font-size: 1.25rem;
-        margin-bottom: 1.2rem;
-    }
-
-    h4 {
-        font-size: 1rem;
-    }
-
-    .logo {
-        width: 120px;
-        max-width: 50%;
-    }
-
-    input[type="file"] {
-        font-size: 0.85rem;
-    }
-
-    button,
-    input[type="submit"] {
-        padding: 10px 14px;
-        font-size: 0.95rem;
-    }
-
-    footer {
-        padding: 12px 10px;
-    }
-
-    footer p {
-        font-size: 0.8rem;
-    }
+.pie-contenido ul {
+    margin: 0;
+    padding-left: 20px;
 }
