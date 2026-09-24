@@ -2,7 +2,6 @@
 <html lang="es">
 
 <head>
-
     <meta charset="UTF-8">
 
     <meta
@@ -11,122 +10,89 @@
     >
 
     <title>
-        Conversor Liquidación de Tarjetas
+        Resumen VISA Galicia a Excel
     </title>
 
     <link
         rel="stylesheet"
-        href="./styles.css"
+        href="./style.css"
     >
-
-    <link
-        rel="icon"
-        href="./logo.png"
-        type="image/png"
-    >
-
+    <link rel="icon" href="./logo.png" type="image/png">
 </head>
-
 
 <body>
 
-    <!-- LOGO PRINCIPAL -->
-
-    <img
-        class="inter-logo"
-        src="./Logo tipo.jpg"
-        alt="logo-interredes"
-    >
-
-
-    <!-- CONTENIDO PRINCIPAL -->
+    <img class="inter-logo" src="./Logo tipo.jpg" alt="interredes-logo-alt">
 
     <main class="contenedor">
 
         <section class="tarjeta">
 
-
-            <!-- ENCABEZADO -->
-
             <header class="encabezado">
 
                 <h1>
-                    Conversor de Liquidación de Tarjetas
+                    Resumen VISA Galicia → Excel
                 </h1>
 
                 <p>
-                    Seleccione el resumen de liquidación
-                    en formato PDF para convertirlo
-                    automáticamente a Excel.
+                    Seleccioná un resumen PDF de Tarjeta Crédito VISA BUSINESS
+                    para convertirlo a Excel.
                 </p>
 
             </header>
 
 
-            <!-- FORMULARIO -->
+            <label
+                for="archivoPDF"
+                class="zona-archivo"
+                id="zonaArchivo"
+            >
 
-            <form id="formLiquidacionTarjetas">
+                <h2>
+                    Seleccionar archivo PDF
+                </h2>
 
+                <p>
+                    Hacé clic aquí para elegir el resumen
+                </p>
 
-                <!-- ARCHIVO PDF -->
+                <p>
+                    Formato permitido: PDF
+                </p>
 
-                <label
-                    for="archivoPDF"
-                    class="zona-archivo"
+                <input
+                    type="file"
+                    id="archivoPDF"
+                    accept="application/pdf"
+                    multiple
                 >
 
-                    <h2>
-                        Resumen de Liquidación
-                    </h2>
+            </label>
 
-                    <p>
-                        Seleccione un archivo PDF correspondiente
-                        a tarjeta de crédito o débito.
-                    </p>
-
-                    <input
-                        type="file"
-                        id="archivoPDF"
-                        name="archivoPDF"
-                        accept=".pdf,application/pdf"
-                        multiple
-                        required
-                    >
-
-                    <div
-                        id="nombreArchivo"
-                        class="nombre-archivo"
-                    >
-                        Ningún archivo seleccionado
-                    </div>
-
-                </label>
-
-
-                <div class="separador"></div>
-
-
-                <!-- BOTÓN -->
-
-                <div class="acciones">
-
-                    <button
-                        type="button"
-                        id="btnConvertir"
-                        class="boton-principal"
-                    >
-                        Convertir y Descargar Excel
-                    </button>
-
-                </div>
-
-            </form>
-
-
-            <!-- SPINNER -->
 
             <div
-                id="spinner"
+                id="archivoSeleccionado"
+                class="nombre-archivo"
+            >
+                Ningún archivo seleccionado
+            </div>
+
+
+            <div class="acciones">
+
+                <button
+                    type="button"
+                    id="btnConvertir"
+                    class="boton-principal"
+                >
+                    Convertir a Excel
+                </button>
+
+            </div>
+
+
+            <div
+                id="spinnerContenedor"
                 class="spinner-contenedor oculto"
             >
 
@@ -135,64 +101,43 @@
             </div>
 
 
-            <!-- ESTADO -->
-
             <div
                 id="estado"
                 class="estado"
             ></div>
 
 
-            <!-- INFORMACIÓN DEL PROCESAMIENTO -->
-
-            <section
-                id="resumen"
-                class="informacion oculto"
-            >
+            <section class="informacion">
 
                 <h3>
-                    Resultado del procesamiento
+                    Información
                 </h3>
 
                 <p>
-                    Tipo de tarjeta:
-                    <strong id="tipoTarjeta">
-                        -
-                    </strong>
+                    El sistema procesa resúmenes VISA BUSINESS del Banco Galicia.
                 </p>
 
                 <p>
-                    Archivo procesado:
-                    <strong id="archivoProcesado">
-                        -
-                    </strong>
+                    Se detectan consumos, impuestos, comisiones,
+                    importes en pesos y dólares.
+                </p>
+
+                <p>
+                    El Excel se genera según el mes de facturación del resumen.
                 </p>
 
             </section>
-
 
         </section>
 
     </main>
 
-
-    <!-- PIE DE PÁGINA -->
-
-    <footer>
-
-        <img
-            class="interredes-logo-alt"
-            src="./interredes-logo-alt.png"
-            alt="INTERREDES"
-        >
-
-    </footer>
-
-
-    <!-- JAVASCRIPT -->
-
-    <script src="./script.js"></script>
-
 </body>
+<footer>
+    <img class="interredes-logo-alt" src="./interredes-logo-alt.png" alt="interredes">
+
+    
+    <script src="./script.js"></script>
+</footer>
 
 </html>
