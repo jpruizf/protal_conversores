@@ -1,6 +1,6 @@
-/* =========================================================
+/* =========================================
    CONFIGURACIÓN GENERAL
-========================================================= */
+   ========================================= */
 
 * {
     box-sizing: border-box;
@@ -8,485 +8,280 @@
 
 html,
 body {
-    width: 100%;
-    min-height: 100vh;
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
-    zoom: 0.8;
+    min-height: 100%;
 }
 
 body {
-    font-family: "Times New Roman", Times, serif;
-    background: #fefafa;
-    color: #3f3636;
-}
-
-
-/* =========================================================
-   CONTENEDOR PRINCIPAL
-========================================================= */
-
-.contenedor {
-    width: 100%;
     min-height: 100vh;
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    padding: 15px 10px;
-}
-
-
-/* =========================================================
-   TARJETA
-========================================================= */
-
-.tarjeta {
-    width: 100%;
-    max-width: 720px;
-
-    background: #ffffff;
-    border-radius: 18px;
-
-    padding: 38px;
-
-    box-shadow:
-        0 20px 50px rgba(36, 18, 18, 0.10);
-
-    overflow: hidden;
-}
-
-
-/* =========================================================
-   ENCABEZADO
-========================================================= */
-
-.encabezado {
-    width: 100%;
-    text-align: center;
-    margin-bottom: 30px;
-}
-
-.encabezado h1 {
-    margin: 0 0 12px;
-
-    font-size: 32px;
-    font-weight: bold;
-    line-height: 1.2;
-
-    color: #4b3c3c;
-
-    overflow-wrap: anywhere;
-}
-
-.encabezado p {
     margin: 0;
 
-    font-size: 17px;
-    line-height: 1.5;
+    display: flex;
+    flex-direction: column;
 
-    color: #756767;
-
-    overflow-wrap: anywhere;
+    font-family: "Times New Roman", Times, serif;
+    background-color: #fefafa;
+    color: #1e293b;
 }
 
 
-/* =========================================================
-   ZONA PARA SELECCIONAR ARCHIVO
-========================================================= */
+/* =========================================
+   ZONA CENTRAL
+   ========================================= */
 
-.zona-archivo {
-    width: 100%;
-
-    border: 2px dashed #e77834;
-    border-radius: 20px;
-
-    padding: 36px 24px;
-
-    text-align: center;
-    background: #fffaf7;
-
-    cursor: pointer;
-
-    transition:
-        background 0.2s ease,
-        border-color 0.2s ease,
-        transform 0.2s ease;
-    transform: translateY(-10px);
-}
-
-.zona-archivo:hover {
-    background: #fff3eb;
-    border-color: #cc6228;
-    transform: translateY(-2px);
-}
-
-.zona-archivo.arrastrando {
-    background: #ffede1;
-    border-color: #b9511d;
-}
-
-.zona-archivo h2 {
-    margin: 0 0 10px;
-
-    font-size: 22px;
-    color: #544545;
-
-    overflow-wrap: anywhere;
-}
-
-.zona-archivo p {
-    margin: 5px 0;
-
-    font-size: 16px;
-    color: #786b6b;
-
-    overflow-wrap: anywhere;
-}
-
-.zona-archivo input[type="file"] {
-    display: none;
-}
-
-
-/* =========================================================
-   NOMBRE DEL ARCHIVO
-========================================================= */
-
-.nombre-archivo {
-    width: 100%;
-    max-width: 100%;
-
-    margin-top: 16px;
-    padding: 12px 14px;
-
-    background: #f7f1f1;
-    border-radius: 9px;
-
-    color: #554949;
-    font-size: 15px;
-    text-align: center;
-
-    overflow-wrap: anywhere;
-    word-break: break-word;
-}
-
-
-/* =========================================================
-   BOTONES
-========================================================= */
-
-.acciones {
+.main-content {
+    flex: 1;
     width: 100%;
 
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 12px;
 
-    margin-top: 24px;
+    padding: 20px;
 }
 
-.boton-principal,
-.boton-secundario {
-    min-height: 48px;
+
+/* =========================================
+   CONTENEDOR PRINCIPAL
+   ========================================= */
+
+.container {
+    width: 500px;
+    max-width: 90%;
+
+    padding: 30px;
+
+    background-color: rgba(255, 255, 255, 0.471);
+
+    border: 1px dashed #d24e1d;
+    border-radius: 10px;
+
+    box-shadow: 0 20px 50px rgba(2, 1, 1, 0.1);
+
+    /* Fuerza el centrado */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+
+/* =========================================
+   TÍTULOS
+   ========================================= */
+
+h1,
+h2 {
+    width: 100%;
+
+    margin-top: 0;
+    margin-bottom: 2rem;
+
+    text-align: center;
+
+    font-size: 1.5rem;
+    color: #020202;
+}
+
+h4 {
+    margin-bottom: 1.5rem;
+
+    text-align: center;
+    color: #000000;
+}
+
+
+/* =========================================
+   LOGOS
+   ========================================= */
+
+.logo {
+    display: block;
+
+    max-width: 80%;
+    height: auto;
+
+    margin: 0 auto 20px;
+}
+
+.logo-tipo {
+    display: block;
+
+    width: 180px;
+    max-width: 60%;
+    height: auto;
+
+    margin: 0 auto 20px;
+}
+
+
+/* =========================================
+   FORMULARIO
+   ========================================= */
+
+form {
+    width: 100%;
+}
+
+
+/* =========================================
+   SELECTOR DE ARCHIVO
+   ========================================= */
+
+input[type="file"] {
+    display: block;
+
+    width: 100%;
+
+    margin-bottom: 1.5rem;
+    padding: 10px;
+
+    background-color: #f8fafc;
+
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+
+    cursor: pointer;
+
+    font-size: 0.9rem;
+}
+
+input[type="file"]::file-selector-button {
+    margin-right: 10px;
+    padding: 6px 12px;
+
+    background-color: #e2e8f0;
+    color: #334155;
 
     border: none;
-    border-radius: 10px;
+    border-radius: 4px;
 
-    padding: 12px 24px;
+    cursor: pointer;
+    font-weight: 600;
+
+    transition: background-color 0.2s ease;
+}
+
+input[type="file"]::file-selector-button:hover {
+    background-color: #cbd5e1;
+}
+
+
+/* =========================================
+   BOTONES
+   ========================================= */
+
+button,
+input[type="submit"] {
+    width: 100%;
+
+    padding: 12px 20px;
+
+    background-color: #e77834;
+    color: #ffffff;
+
+    border: none;
+    border-radius: 6px;
 
     font-family: inherit;
-    font-size: 17px;
-    font-weight: bold;
+    font-size: 1rem;
+    font-weight: 600;
 
     cursor: pointer;
 
     transition:
-        background 0.2s ease,
-        transform 0.2s ease,
-        box-shadow 0.2s ease;
+        background-color 0.2s ease,
+        transform 0.1s ease;
 }
 
-.boton-principal {
-    background: #e77834;
-    color: #ffffff;
-    
-    box-shadow:
-        0 8px 18px rgba(223, 103, 10, 0.279);
+button:hover,
+input[type="submit"]:hover {
+    background-color: #727d79;
 }
 
-.boton-principal:hover {
-    background: #727d79;
-    transform: translateY(-2px);
-}
-
-.boton-principal:active {
-    transform: translateY(0);
-}
-
-.boton-principal:disabled {
-    background: #cbbdb5;
-    color: #ffffff;
-    
-    cursor: not-allowed;
-    box-shadow: none;
-    transform: none;
-}
-
-.boton-secundario {
-    background: #eee7e7;
-    color: #554949;
-}
-
-.boton-secundario:hover {
-    background: #d9cece;
-    transform: translateY(-2px);
+button:active,
+input[type="submit"]:active {
+    transform: scale(0.99);
 }
 
 
-/* =========================================================
-   ESTADO DEL PROCESO
-========================================================= */
+/* =========================================
+   MENSAJES
+   ========================================= */
 
-.estado {
-    width: 100%;
-
-    margin-top: 22px;
-    padding: 14px 16px;
-
-    border-radius: 10px;
+#mensaje {
+    margin-top: 20px;
 
     text-align: center;
-    font-size: 16px;
-    line-height: 1.4;
+    font-weight: 600;
 
-    overflow-wrap: anywhere;
-    word-break: break-word;
-}
-
-.estado:empty {
-    display: none;
-}
-
-.estado.exito {
-    background: #e7f7ed;
-    color: #2e7044;
-    border: 1px solid #aed7bc;
-}
-
-.estado.error {
-    background: #fdecec;
-    color: #9a3333;
-    border: 1px solid #e7b8b8;
-}
-
-.estado.procesando {
-    background: #fff3e9;
-    color: #95501e;
-    border: 1px solid #f0c8a9;
+    color: #1e293b;
 }
 
 
-/* =========================================================
-   SPINNER
-========================================================= */
+/* =========================================
+   PIE DE PÁGINA
+   ========================================= */
 
-.spinner-contenedor {
+footer {
     width: 100%;
 
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    margin-top: auto;
 
-    margin-top: 20px;
+    padding: 14px 20px;
+
+    background-color: #000000;
 }
 
-.spinner {
-    width: 38px;
-    height: 38px;
+footer p {
+    margin: 4px 0;
 
-    border: 4px solid #eee4df;
-    border-top-color: #e77834;
-    border-radius: 50%;
+    text-align: center;
 
-    animation: girar 0.8s linear infinite;
+    color: #fefafa;
+    font-size: 0.85rem;
 }
 
-.oculto {
-    display: none !important;
-}
-
-@keyframes girar {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-
-/* =========================================================
-   INFORMACIÓN INFERIOR
-========================================================= */
-
-.informacion {
-    width: 100%;
-
-    margin-top: 30px;
-    padding: 20px;
-
-    background: #f8f4f4;
-    border-left: 5px solid #e77834;
-    border-radius: 10px;
-}
-
-.informacion h3 {
-    margin: 0 0 12px;
-
-    font-size: 20px;
-    color: #4e4040;
-}
-
-.informacion p {
-    margin: 8px 0;
-
-    font-size: 15px;
-    line-height: 1.5;
-
-    color: #6f6262;
-
-    overflow-wrap: anywhere;
-}
-
-.informacion ul {
-    margin: 10px 0 0;
-    padding-left: 22px;
-}
-
-.informacion li {
-    margin-bottom: 7px;
-
-    font-size: 15px;
-    line-height: 1.4;
-
-    color: #6f6262;
-
-    overflow-wrap: anywhere;
-}
-.logo-tipo{
-    display:flex;
-    align-items: center;
-    justify-content: center;
-    width: min(500px, 100%);
-    margin: 0 auto;
-
-}
-footer
+.interredes-logo-alt
 {
-    width: 100%;
-    padding: 20px;
-    background-color: #000;
-    color: #fff;
-}
+    display: block;
 
-/* =========================================================
-   TABLETS
-========================================================= */
+    max-width: 180px;
 
-@media (max-width: 768px) {
+    height: auto;
 
-    .contenedor {
-        align-items: flex-start;
-        padding: 20px 14px;
-    }
-
-    .tarjeta {
-        max-width: 100%;
-        padding: 28px 22px;
-        border-radius: 15px;
-    }
-
-    .encabezado h1 {
-        font-size: 27px;
-    }
-
-    .encabezado p {
-        font-size: 16px;
-    }
-
-    .zona-archivo {
-        padding: 30px 18px;
-    }
-
-    .acciones {
-        flex-direction: column;
-    }
-
-    .boton-principal,
-    .boton-secundario {
-        width: 100%;
-    }
+    margin: 0 auto;
 }
 
 
-/* =========================================================
-   CELULARES Y VENTANAS PEQUEÑAS
-========================================================= */
+/* =========================================
+   RESPONSIVE
+   ========================================= */
 
-@media (max-width: 480px) {
+@media (max-width: 600px) {
 
-    .contenedor {
+    .main-content {
         padding: 10px;
+        align-items: flex-start;
     }
 
-    .tarjeta {
-        padding: 22px 15px;
-        border-radius: 12px;
-    }
-
-    .encabezado {
-        margin-bottom: 22px;
-    }
-
-    .encabezado h1 {
-        font-size: 23px;
-    }
-
-    .encabezado p {
-        font-size: 15px;
-    }
-
-    .zona-archivo {
-        padding: 24px 12px;
-    }
-
-    .zona-archivo h2 {
-        font-size: 19px;
-    }
-
-    .zona-archivo p {
-        font-size: 14px;
-    }
-
-    .boton-principal,
-    .boton-secundario {
+    .container {
         width: 100%;
+        max-width: 500px;
 
-        padding: 12px 14px;
-        font-size: 16px;
+        margin: 20px auto;
+        padding: 22px;
+
+        zoom: 0.85;
     }
 
-    .informacion {
-        padding: 16px 14px;
+    h1,
+    h2 {
+        font-size: 1.3rem;
     }
 
-    .informacion h3 {
-        font-size: 18px;
+    .logo {
+        max-width: 180px;
     }
 
-    .informacion p,
-    .informacion li {
-        font-size: 14px;
+    footer {
+        padding: 12px 10px;
     }
 }
