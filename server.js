@@ -1,577 +1,923 @@
 const express = require("express");
 const multer = require("multer");
 const path = require("path");
-
-
-// ============================================================
-// INFORME ACTUAL
-// ============================================================
-const { procesarInformeLiquidacion } = require("./parserServer");
-const { generarExcelLiquidacion } = require("./excelService");
-
-
-// ============================================================
-// SAN JUAN LINK
-// ============================================================
-const {
-    procesarSanJuanLink
-}= require("./parserSanJuanLink");
-const {
-    generarExcelSanJuanLink
-}= require("./excelServiceSanJuanLink");
-
-// ============================================================
-// DETECTOR AUTOMÁTICO
-// ============================================================
-
-
-
-// ============================================================
-// Generador de excel por lote de informes
-// ============================================================
-const {
-    generarExcelLote
-} = require("./excelServiceLote");
+const fs = require("fs");
 
 const {
-    TIPOS_INFORME,
-    detectarTipoLiquidacion
-}= require("./detectorLiquidacion");
+    extraerTextoPDF
+} = require("./extractorPDF");
+
+const {
+    esFormatoSEPSA,
+    procesarSEPSA
+} = require("./parser/parserSEPSA");
+
+
+
+
+const {
+    procesarServicio
+} = require("./servicios/parserServicios");
+
+const {
+    generarExcel
+} = require("./excel");
+const {
+    generarExcelServicios,
+    generarExcelServiciosMultiple
+} = require("./servicios/excelServicios");
+
 
 const app = express();
-const PORT = process.env.PORT || 3005;
 
-// El archivo TXT se procesa en memoria.
-// No depende de carpetas uploads ni de rutas específicas del equipo.
+console.log( ">>> EJECUTANDO SERVER NUEVO - SERVICIOS HABILITADOS <<<");
+
+const PORT = process.env.PORT || 3006;
+
+
+/*
+ * Carpetas de trabajo.
+ */
+const carpetaUploads = path.join(
+    __dirname,
+    "uploads"
+);
+
+const carpetaSalida = path.join(
+    __dirname,
+    "salida"
+);
+
+
+/*
+ * Crear carpetas si no existen.
+ */
+if (!fs.existsSync(carpetaUploads)) {
+    fs.mkdirSync(
+        carpetaUploads,
+        {
+            recursive: true
+        }
+    );
+}
+
+if (!fs.existsSync(carpetaSalida)) {
+    fs.mkdirSync(
+        carpetaSalida,
+        {
+            recursive: true
+        }
+    );
+}
+
+
+/*
+ * Configuración de Multer.
+ */
+const almacenamiento = multer.diskStorage({
+
+    destination: function (
+        req,
+        file,
+        cb
+    ) {
+        cb(
+            null,
+            carpetaUploads
+        );
+    },
+
+    filename: function (
+        req,
+        file,
+        cb
+    ) {
+        const nombreSeguro =
+            file.originalname
+                .replace(/\s+/g, "_")
+                .replace(/[^\w.-]/g, "");
+
+        cb(
+            null,
+            `${Date.now()}_${nombreSeguro}`
+        );
+    }
+});
+
+
 const upload = multer({
-    storage: multer.memoryStorage(),
+
+    storage: almacenamiento,
+
+    fileFilter: function (
+        req,
+        file,
+        cb
+    ) {
+
+        const esPDF =
+            file.mimetype === "application/pdf" ||
+            file.originalname
+                .toLowerCase()
+                .endsWith(".pdf");
+
+        if (!esPDF) {
+            return cb(
+                new Error(
+                    "Solamente se permiten archivos PDF."
+                )
+            );
+        }
+
+        cb(
+            null,
+            true
+        );
+    },
 
     limits: {
-        fileSize: 10 * 1024 * 1024, // Máximo: 10 MB
-    },
-
-    fileFilter: (req, file, callback) => {
-        const extension = path.extname(file.originalname).toLowerCase();
-
-        if (extension !== ".txt") {
-            return callback(
-                new Error("El archivo seleccionado debe tener extensión .txt")
-            );
-        }
-
-        callback(null, true);
-    },
+        fileSize: 10 * 1024 * 1024
+    }
 });
 
-// Publica index.html, script.js y style.css.
-app.use(express.static(path.join(__dirname, "public")));
 
-// Verificación rápida del servidor.
-app.get("/estado", (req, res) => {
-    res.json({
-        estado: "activo",
-        servicio: "Conversor Informe de Liquidación TXT a Excel",
-        puerto: PORT,
-    });
-});
+/*
+ * Archivos estáticos del frontend.
+ */
+app.use(
+    express.static(
+        path.join(
+            __dirname,
+            "public"
+        )
+    )
+);
 
-// Recibe el informe TXT y devuelve el Excel.
+
+/*
+ * Ruta principal de conversión.
+ */
 app.post(
     "/convertir",
-    upload.single("archivoTXT"),
-    async (req, res, next) => {
-        const inicio= Date.now();
-        const tiempoSegundos = (Date.now() - inicio) / 1000;
+    upload.single("archivoPDF"),
 
-        console.log(`[METRICA] LIQUIDACION | OK | ${tiempoSegundos.toFixed(2)} s`);
+    async (req, res) => {
+
+        let rutaPDF = null;
+        let rutaExcel = null;
+
         try {
+
+            /*
+             * Verificar archivo recibido.
+             */
             if (!req.file) {
-                return res.status(400).json({
-                    error: "Debe seleccionar un archivo TXT.",
-                });
+                return res
+                    .status(400)
+                    .send(
+                        "No se seleccionó ningún archivo PDF."
+                    );
             }
 
-            // El informe utiliza caracteres comunes del formato Windows.
-            // latin1 evita errores con tildes, eñes y símbolos del reporte.
-            const contenidoTXT = req.file.buffer.toString("latin1");
 
-            if (!contenidoTXT.trim()) {
-                return res.status(400).json({
-                    error: "El archivo TXT está vacío.",
-                });
+            rutaPDF = req.file.path;
+
+
+            /*
+             * Verificar que Multer haya guardado
+             * físicamente el archivo.
+             */
+            if (!fs.existsSync(rutaPDF)) {
+                throw new Error(
+                    `El archivo recibido no existe en disco: ${rutaPDF}`
+                );
             }
 
-            // El parser deberá devolver los datos generales y
-            // los registros PX-BRUTO consolidados por fecha.
-      
-            const tipoInforme =
-            detectarTipoLiquidacion(contenidoTXT);
-        console.log("====================================");
-        console.log("ARCHIVO:", req.file.originalname);
-        console.log("TIPO DETECTADO:", tipoInforme);
-        console.log("====================================");
 
-let datosLiquidacion;
-let excelBuffer;
-let sufijoSalida;
+            console.log("");
+            console.log("=================================");
+            console.log("NUEVA CONVERSIÓN");
+            console.log(
+                "Archivo:",
+                req.file.originalname
+            );
+            console.log(
+                "Ruta temporal:",
+                rutaPDF
+            );
+            console.log("=================================");
 
-switch (tipoInforme) {
 
-    case TIPOS_INFORME.PAGO_FACIL:
-
-        datosLiquidacion =
-            procesarInformeLiquidacion(
-                contenidoTXT
+            /*
+             * 1.
+             * Extraer texto del PDF.
+             */
+            const textoPDF =
+                await extraerTextoPDF(
+                    rutaPDF
+                );
+            console.log(
+            ">>> SERVER NUEVO: PDF EXTRAÍDO <<<"
             );
 
-        if (
-            !datosLiquidacion ||
-            !Array.isArray(
-                datosLiquidacion.detalles
-            ) ||
-            datosLiquidacion.detalles.length === 0
-        ) {
-            return res.status(422).json({
-                error:
-                    "No se encontraron registros válidos en el informe de liquidación."
-            });
-        }
-
-        excelBuffer =
-            await generarExcelLiquidacion(
-                datosLiquidacion
+            console.log(
+                "Texto extraído correctamente."
             );
 
-        sufijoSalida =
-            "liquidacion";
-
-        break;
-
-
-    case TIPOS_INFORME.SAN_JUAN_LINK:
-
-        datosLiquidacion =
-            procesarSanJuanLink(
-                contenidoTXT
+            console.log(
+                "Caracteres:",
+                textoPDF.length
             );
 
-        if (
-            !datosLiquidacion ||
-            !Array.isArray(
-                datosLiquidacion.detalles
-            ) ||
-            datosLiquidacion.detalles.length === 0
-        ) {
-            return res.status(422).json({
-                error:
-                    "No se encontraron registros de bancos emisores en el informe San Juan Link."
-            });
-        }
 
-        excelBuffer =
-            await generarExcelSanJuanLink(
-                datosLiquidacion
+            /*
+             * 2.
+             * Determinar qué flujo debe procesar
+             * el documento.
+             */
+            let datos;
+
+            const esSEPSA =
+                esFormatoSEPSA(
+                    textoPDF
+                );
+            
+            console.log(
+            ">>> RESULTADO esFormatoSEPSA:",
+                esSEPSA
             );
 
-        sufijoSalida =
-            "san_juan_link";
-
-        break;
-
-
-        default:
-
-        return res.status(422).json({
-            error:
-                "El archivo TXT no corresponde a un formato de liquidación reconocido."
-        });
-        }
-
-
-        /* Validar que cualquiera de los dos servicios Excel
-        haya devuelto correctamente un Buffer. */
-
-        if (!Buffer.isBuffer(excelBuffer)) {
-            throw new Error(
-            "El módulo de generación Excel no devolvió un archivo Excel válido."
-            );
-        }
-
-            const nombreOriginal = path.parse(req.file.originalname).name;
-
-            const nombreSeguro = nombreOriginal
-                .replace(/[<>:"/\\|?*\x00-\x1F]/g, "_")
-                .trim();
-
-            const nombreSalida =
-                `${nombreSeguro || "Informe_liquidacion"}_convertido.xlsx`;
-
-            res.setHeader(
-                "Content-Type",
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            console.log(
+                "¿Es formato SEPSA?:",
+                esSEPSA
             );
 
-            res.setHeader(
-                "Content-Disposition",
-                `attachment; filename="${nombreSalida}"`
+
+            /*
+             * ============================
+             * FLUJO SEPSA
+             * ============================
+             *
+             * Se mantiene la lógica existente.
+             */
+            if (esSEPSA === true) {
+
+                console.log(
+                    "Formato detectado: SEPSA"
+                );
+
+
+                datos =
+                    procesarSEPSA(
+                        textoPDF,
+                        req.file.originalname
+                    );
+
+
+                rutaExcel =
+                    generarExcel(
+                        datos,
+                        carpetaSalida
+                    );
+
+
+            } else {
+
+                /*
+                 * ============================
+                 * FLUJO SERVICIOS
+                 * ============================
+                 *
+                 * parserServicios detecta
+                 * internamente:
+                 *
+                 * - EcoGas residencial
+                 * - Naturgy residencial
+                 * - Naturgy residencial + OSSE
+                 * - Naturgy comercial T2
+                 */
+
+                console.log(
+                    "Formato SEPSA no detectado."
+                );
+
+                console.log(
+                    "Intentando detectar factura de servicio..."
+                );
+
+
+                datos =
+                    procesarServicio(
+                        textoPDF,
+                        req.file.originalname
+                    );
+
+
+                console.log(
+                    "Servicio detectado:",
+                    datos.proveedor,
+                    "/",
+                    datos.tipoFactura
+                );
+
+
+                rutaExcel =
+                    generarExcelServicios(
+                        datos,
+                        carpetaSalida
+                    );
+            }
+
+
+            /*
+             * 3.
+             * Verificar Excel generado.
+             */
+            if (!rutaExcel) {
+                throw new Error(
+                    "No se obtuvo una ruta de salida para el Excel."
+                );
+            }
+
+
+            if (!fs.existsSync(rutaExcel)) {
+                throw new Error(
+                    `El Excel no fue generado correctamente: ${rutaExcel}`
+                );
+            }
+
+
+            console.log("");
+            console.log(
+                "PDF interpretado correctamente."
             );
 
-            res.setHeader("Content-Length", excelBuffer.length);
+            console.dir(
+                datos,
+                {
+                    depth: null,
+                    colors: true
+                }
+            );
 
-            return res.send(excelBuffer);
+
+            /*
+             * 4.
+             * Descargar archivo.
+             */
+            const nombreDescarga =
+                path.basename(
+                    rutaExcel
+                );
+
+
+            console.log(
+                "Excel generado:",
+                nombreDescarga
+            );
+
+
+            res.download(
+                rutaExcel,
+                nombreDescarga,
+
+                (error) => {
+
+                    /*
+                     * Limpiar temporales después
+                     * de finalizar la descarga.
+                     */
+                    eliminarArchivo(
+                        rutaPDF
+                    );
+
+                    eliminarArchivo(
+                        rutaExcel
+                    );
+
+
+                    if (error) {
+
+                        console.error(
+                            "Error durante la descarga:",
+                            error.message
+                        );
+
+                    } else {
+
+                        console.log(
+                            "Descarga completada correctamente."
+                        );
+                    }
+                }
+            );
+
+
         } catch (error) {
-            next(error);
+
+            console.error("");
+            console.error(
+                "ERROR DURANTE LA CONVERSIÓN:"
+            );
+
+            console.error(
+                error.message
+            );
+
+            console.error(
+                error.stack
+            );
+
+
+            /*
+             * Eliminar temporales si hubo error.
+             */
+            eliminarArchivo(
+                rutaPDF
+            );
+
+            eliminarArchivo(
+                rutaExcel
+            );
+
+
+            if (!res.headersSent) {
+
+                res
+                    .status(500)
+                    .send(
+                        error.message ||
+                        "No se pudo convertir el archivo PDF."
+                    );
+            }
         }
     }
 );
 
-// ============================================================
-// CONVERSIÓN MÚLTIPLE
-// Varios TXT -> un único Excel
-// ============================================================
-
-// ============================================================
-// CONVERSIÓN MÚLTIPLE
-// Varios TXT -> un único Excel
-// ============================================================
-
+/*
+ * =========================================================
+ * CONVERSIÓN MÚLTIPLE DE FACTURAS DE SERVICIOS
+ * =========================================================
+ *
+ * Recibe varios PDFs y genera un único Excel.
+ *
+ * La ruta individual /convertir permanece intacta.
+ */
 app.post(
-    "/convertir-lote",
-    upload.array("archivosTXT", 50),
-    async (req, res, next) => {
+    "/convertir-multiple",
+
+    upload.array(
+        "archivosPDF",
+        50
+    ),
+
+    async (req, res) => {
+
+        const rutasPDF = [];
+
+        let rutaExcel = null;
+
         try {
 
-            /* =================================================
-               VALIDAR ARCHIVOS
-            ================================================= */
-
+            /*
+             * Verificar archivos.
+             */
             if (
                 !req.files ||
                 !Array.isArray(req.files) ||
                 req.files.length === 0
             ) {
-                return res.status(400).json({
-                    error:
-                        "Debe seleccionar al menos un archivo TXT."
-                });
+                return res
+                    .status(400)
+                    .send(
+                        "No se seleccionaron archivos PDF."
+                    );
             }
 
 
-            /* =================================================
-               RESULTADOS DEL LOTE
-            ================================================= */
-
-            const resultados = [];
-
-            const errores = [];
-
-
-            /* =================================================
-               PROCESAR CADA ARCHIVO
-            ================================================= */
-
-            for (const archivo of req.files) {
-
-                try {
-
-                    const contenidoTXT =
-                        archivo.buffer.toString(
-                            "latin1"
-                        );
-
-                    if (
-                        !contenidoTXT.trim()
-                    ) {
-                        errores.push({
-                            archivo:
-                                archivo.originalname,
-
-                            error:
-                                "El archivo está vacío."
-                        });
-
-                        continue;
-                    }
-
-
-                    /* =========================================
-                       DETECTAR TIPO DE INFORME
-                    ========================================= */
-
-                    const tipoInforme =
-                        detectarTipoLiquidacion(
-                            contenidoTXT
-                        );
-
-                    console.log(
-                        "===================================="
-                    );
-
-                    console.log(
-                        "ARCHIVO LOTE:",
-                        archivo.originalname
-                    );
-
-                    console.log(
-                        "TIPO DETECTADO:",
-                        tipoInforme
-                    );
-
-                    console.log(
-                        "===================================="
-                    );
-
-
-                    let datosLiquidacion;
-
-
-                    /* =========================================
-                       SELECCIONAR PARSER
-                    ========================================= */
-
-                    switch (tipoInforme) {
-
-                        /* ===============================
-                           PAGO FÁCIL
-                        =============================== */
-
-                        case TIPOS_INFORME.PAGO_FACIL:
-
-                            datosLiquidacion =
-                                procesarInformeLiquidacion(
-                                    contenidoTXT
-                                );
-
-                            break;
-
-
-                        /* ===============================
-                           SAN JUAN LINK
-                        =============================== */
-
-                        case TIPOS_INFORME.SAN_JUAN_LINK:
-
-                            datosLiquidacion =
-                                procesarSanJuanLink(
-                                    contenidoTXT
-                                );
-
-                            break;
-
-
-                        /* ===============================
-                           DESCONOCIDO
-                        =============================== */
-
-                        default:
-
-                            errores.push({
-                                archivo:
-                                    archivo.originalname,
-
-                                error:
-                                    "Formato de informe no reconocido."
-                            });
-
-                            continue;
-                    }
-
-
-                    /* =========================================
-                       VALIDAR RESULTADO DEL PARSER
-                    ========================================= */
-
-                    if (
-                        !datosLiquidacion ||
-                        !Array.isArray(
-                            datosLiquidacion.detalles
-                        ) ||
-                        datosLiquidacion.detalles.length === 0
-                    ) {
-                        errores.push({
-                            archivo:
-                                archivo.originalname,
-
-                            error:
-                                "El informe no contiene registros válidos."
-                        });
-
-                        continue;
-                    }
-
-
-                    /* =========================================
-                       GUARDAR RESULTADO
-                    ========================================= */
-
-                    resultados.push({
-                        nombreArchivo:
-                            archivo.originalname,
-
-                        tipoInforme,
-
-                        datos:
-                            datosLiquidacion
-                    });
-
-
-                } catch (errorArchivo) {
-
-                    console.error(
-                        `Error procesando ${archivo.originalname}:`,
-                        errorArchivo
-                    );
-
-                    errores.push({
-                        archivo:
-                            archivo.originalname,
-
-                        error:
-                            errorArchivo.message ||
-                            "Error procesando el archivo."
-                    });
-                }
-            }
-
-
-            /* =================================================
-               VALIDAR QUE AL MENOS UNO FUE PROCESADO
-            ================================================= */
-
-            if (
-                resultados.length === 0
-            ) {
-                return res.status(422).json({
-                    error:
-                        "No se pudo procesar ningún informe del lote.",
-
-                    errores
-                });
-            }
-
-
-            /* =================================================
-               INFORMACIÓN TEMPORAL DE DIAGNÓSTICO
-            ================================================= */
-
+            console.log("");
             console.log(
-                "===================================="
+                "================================="
             );
-
             console.log(
-                "LOTE PROCESADO"
+                "NUEVA CONVERSIÓN MÚLTIPLE"
             );
-
             console.log(
-                "Archivos recibidos:",
+                "Cantidad de archivos:",
                 req.files.length
             );
-
             console.log(
-                "Archivos válidos:",
-                resultados.length
-            );
-
-            console.log(
-                "Archivos con error:",
-                errores.length
-            );
-
-            console.log(
-                "===================================="
+                "================================="
             );
 
 
             /*
-             * ==================================================
-             * SIGUIENTE FASE
-             * ==================================================
-             *
-             * Aquí llamaremos a:
-             *
-             * const excelBuffer =
-             *     await generarExcelLote(
-             *         resultados,
-             *         errores
-             *     );
-             *
-             * y devolveremos el Excel.
-             *
-             * Por ahora podemos responder JSON para comprobar
-             * que la carga múltiple y los parsers funcionan.
+             * Acá acumularemos los resultados
+             * de todas las facturas.
              */
-    const excelBuffer =
-    await generarExcelLote(
-        resultados,
-        errores
-    );
+            const resultados = [];
 
-    if (!Buffer.isBuffer(excelBuffer)) {
-        throw new Error(
-            "El módulo excelServiceLote no devolvió un archivo Excel válido."
-        );
-    }
 
-    res.setHeader(
-        "Content-Type",
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    );
+            /*
+             * =================================
+             * PROCESAR CADA PDF
+             * =================================
+             */
+            for (const archivo of req.files) {
 
-    res.setHeader(
-        "Content-Disposition",
-        'attachment; filename="Liquidaciones_lote.xlsx"'
-        );
+                const rutaPDF =
+                    archivo.path;
 
-        res.setHeader(
-            "Content-Length",
-            excelBuffer.length
-        );
+                rutasPDF.push(
+                    rutaPDF
+                );
 
-        return res.send(excelBuffer);
+
+                console.log("");
+                console.log(
+                    "Procesando:",
+                    archivo.originalname
+                );
+
+
+                /*
+                 * Verificar archivo físico.
+                 */
+                if (
+                    !fs.existsSync(
+                        rutaPDF
+                    )
+                ) {
+                    throw new Error(
+                        `El archivo no existe en disco: ${archivo.originalname}`
+                    );
+                }
+
+
+                /*
+                 * 1.
+                 * Extraer texto.
+                 */
+                const textoPDF =
+                    await extraerTextoPDF(
+                        rutaPDF
+                    );
+
+
+                console.log(
+                    "Texto extraído:",
+                    textoPDF.length,
+                    "caracteres"
+                );
+
+
+                /*
+                 * 2.
+                 * En esta primera versión
+                 * el lote múltiple procesa
+                 * únicamente facturas de servicios.
+                 */
+                const esSEPSA =
+                    esFormatoSEPSA(
+                        textoPDF
+                    );
+
+
+                if (esSEPSA) {
+                    throw new Error(
+                        `El archivo "${archivo.originalname}" corresponde a formato SEPSA y no puede incluirse todavía en el lote de facturas de servicios.`
+                    );
+                }
+
+
+                /*
+                 * 3.
+                 * Procesar proveedor automáticamente.
+                 *
+                 * parserServicios detecta:
+                 *
+                 * - Naturgy residencial
+                 * - Naturgy + OSSE
+                 * - Naturgy comercial T2
+                 * - EcoGas
+                 */
+                const datos =
+                    procesarServicio(
+                        textoPDF,
+                        archivo.originalname
+                    );
+
+
+                console.log(
+                    "Servicio detectado:",
+                    datos.proveedor,
+                    "/",
+                    datos.tipoFactura
+                );
+
+
+                /*
+                 * Guardar resultado.
+                 *
+                 * Todavía NO generamos Excel.
+                 */
+                resultados.push(
+                    datos
+                );
+            }
+
+
+            /*
+             * =================================
+             * GENERAR UN ÚNICO EXCEL
+             * =================================
+             */
+            rutaExcel =
+                generarExcelServiciosMultiple(
+                    resultados,
+                    carpetaSalida
+                );
+
+
+            if (!rutaExcel) {
+                throw new Error(
+                    "No se obtuvo una ruta para el Excel consolidado."
+                );
+            }
+
+
+            if (
+                !fs.existsSync(
+                    rutaExcel
+                )
+            ) {
+                throw new Error(
+                    `El Excel consolidado no fue generado correctamente: ${rutaExcel}`
+                );
+            }
+
+
+            const nombreDescarga =
+                path.basename(
+                    rutaExcel
+                );
+
+
+            console.log("");
+            console.log(
+                "================================="
+            );
+            console.log(
+                "LOTE PROCESADO CORRECTAMENTE"
+            );
+            console.log(
+                "Facturas procesadas:",
+                resultados.length
+            );
+            console.log(
+                "Excel generado:",
+                nombreDescarga
+            );
+            console.log(
+                "================================="
+            );
+
+
+            /*
+             * =================================
+             * DESCARGAR
+             * =================================
+             */
+            res.download(
+                rutaExcel,
+                nombreDescarga,
+
+                (error) => {
+
+                    /*
+                     * Limpiar todos los PDFs
+                     * temporales.
+                     */
+                    rutasPDF.forEach(
+                        (ruta) => {
+                            eliminarArchivo(
+                                ruta
+                            );
+                        }
+                    );
+
+
+                    /*
+                     * Limpiar Excel generado.
+                     */
+                    eliminarArchivo(
+                        rutaExcel
+                    );
+
+
+                    if (error) {
+
+                        console.error(
+                            "Error durante la descarga múltiple:",
+                            error.message
+                        );
+
+                    } else {
+
+                        console.log(
+                            "Descarga múltiple completada correctamente."
+                        );
+                    }
+                }
+            );
 
 
         } catch (error) {
-            next(error);
+
+            console.error("");
+            console.error(
+                "ERROR DURANTE LA CONVERSIÓN MÚLTIPLE:"
+            );
+
+            console.error(
+                error.message
+            );
+
+            console.error(
+                error.stack
+            );
+
+
+            /*
+             * Limpiar todos los PDFs temporales.
+             */
+            rutasPDF.forEach(
+                (ruta) => {
+                    eliminarArchivo(
+                        ruta
+                    );
+                }
+            );
+
+
+            /*
+             * Limpiar Excel si llegó
+             * a generarse parcialmente.
+             */
+            eliminarArchivo(
+                rutaExcel
+            );
+
+
+            if (!res.headersSent) {
+
+                res
+                    .status(500)
+                    .send(
+                        error.message ||
+                        "No se pudo procesar el lote de facturas."
+                    );
+            }
         }
     }
 );
 
 
-// Manejo centralizado de errores.
-app.use((error, req, res, next) => {
-    console.error("Error en el conversor:", error);
+/*
+ * Manejo de errores de Multer.
+ */
+app.use(
+    (
+        error,
+        req,
+        res,
+        next
+    ) => {
 
-    if (error instanceof multer.MulterError) {
-        if (error.code === "LIMIT_FILE_SIZE") {
-            return res.status(413).json({
-                error: "El archivo supera el límite permitido de 10 MB.",
-            });
+        console.error(
+            "Error del servidor:",
+            error
+        );
+
+
+        if (
+            error instanceof
+            multer.MulterError
+        ) {
+
+            if (
+                error.code ===
+                "LIMIT_FILE_SIZE"
+            ) {
+
+                return res
+                    .status(400)
+                    .send(
+                        "El archivo supera el tamaño máximo permitido de 10 MB."
+                    );
+            }
+
+
+            return res
+                .status(400)
+                .send(
+                    `Error al cargar el archivo: ${error.message}`
+                );
         }
 
-        return res.status(400).json({
-            error: `Error al cargar el archivo: ${error.message}`,
-        });
+
+        if (error) {
+
+            return res
+                .status(400)
+                .send(
+                    error.message ||
+                    "No se pudo cargar el archivo."
+                );
+        }
+
+
+        next();
     }
+);
+
+
+/*
+ * Elimina archivos temporales.
+ */
+function eliminarArchivo(
+    rutaArchivo
+) {
+
+    if (!rutaArchivo) {
+        return;
+    }
+
 
     if (
-        error.message ===
-        "El archivo seleccionado debe tener extensión .txt"
+        !fs.existsSync(
+            rutaArchivo
+        )
     ) {
-        return res.status(400).json({
-            error: error.message,
-        });
+        return;
     }
 
-    return res.status(500).json({
-        error:
-            error.message ||
-            "Ocurrió un error inesperado durante la conversión.",
-    });
-});
 
-app.listen(PORT, "127.0.0.1", () => {
-    console.log("====================================================");
-    console.log(" Conversor Informe de Liquidacion TXT a Excel");
-    console.log(` Servidor activo: http://127.0.0.1:${PORT}`);
-    console.log("====================================================");
-});
+    try {
+
+        fs.unlinkSync(
+            rutaArchivo
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            `No se pudo eliminar el archivo temporal ${rutaArchivo}:`,
+            error.message
+        );
+    }
+}
+
+
+/*
+ * Iniciar servidor.
+ */
+app.listen(
+    PORT,
+    "127.0.0.1",
+
+    () => {
+
+        console.log("");
+        console.log(
+            "================================="
+        );
+
+        console.log(
+            "CONVERSOR PDF INICIADO"
+        );
+
+        console.log(
+            `Puerto: ${PORT}`
+        );
+
+        console.log(
+            `URL interna: http://127.0.0.1:${PORT}`
+        );
+
+        console.log(
+            "Uploads:",
+            carpetaUploads
+        );
+
+        console.log(
+            "Salida:",
+            carpetaSalida
+        );
+
+        console.log(
+            "================================="
+        );
+    }
+);

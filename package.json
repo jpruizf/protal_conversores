@@ -1,17 +1,18 @@
 {
-
-  "name": "informe_liquidacion_txt_a_excel",
+  "name": "pdf-a-excel-resumen-comisiones",
   "version": "1.0.0",
-  "description": "SISTEMA DE CONVERSION AUTOMATICA DE RESUMENES DE LIQUIDACION DE TXT A EXCEL",
+  "description": "Conversor de Resumen de Comisiones Pago Fácil PDF a Excel",
   "main": "server.js",
 
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "node server.js"
   },
 
   "dependencies": {
     "express": "^5.2.1",
     "multer": "^2.2.0",
+    "pdf-parse": "^2.4.5",
     "xlsx": "^0.18.5"
   }
 }
