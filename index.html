@@ -2,6 +2,7 @@
 <html lang="es">
 
 <head>
+
     <meta charset="UTF-8">
 
     <meta
@@ -9,7 +10,14 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <link rel="stylesheet" href="./css/style.css">
+    <title>
+        Conversor Liquidación de Tarjetas
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="./styles.css"
+    >
 
     <link
         rel="icon"
@@ -17,67 +25,174 @@
         type="image/png"
     >
 
-    <title>Conversor PDF a Excel</title>
 </head>
+
 
 <body>
 
-    <main>
+    <!-- LOGO PRINCIPAL -->
 
-        <img class="logo-tipo"
-            src="./Logo tipo.jpg"
-            alt="Logo INTERREDES"
-        >
+    <img
+        class="inter-logo"
+        src="./Logo tipo.jpg"
+        alt="logo-interredes"
+    >
 
-        <div class="container">
 
-            <h1>Conversión de facturas de servicios</h1>
+    <!-- CONTENIDO PRINCIPAL -->
 
-            <h4>
-                PDF a Excel
-            </h4>
+    <main class="contenedor">
 
-            <div class="conversor-box">
+        <section class="tarjeta">
 
-                <form
-                    id="formulario"
-                    action="./convertir"
-                    method="POST"
-                    enctype="multipart/form-data"
+
+            <!-- ENCABEZADO -->
+
+            <header class="encabezado">
+
+                <h1>
+                    Conversor de Liquidación de Tarjetas
+                </h1>
+
+                <p>
+                    Seleccione el resumen de liquidación
+                    en formato PDF para convertirlo
+                    automáticamente a Excel.
+                </p>
+
+            </header>
+
+
+            <!-- FORMULARIO -->
+
+            <form id="formLiquidacionTarjetas">
+
+
+                <!-- ARCHIVO PDF -->
+
+                <label
+                    for="archivoPDF"
+                    class="zona-archivo"
                 >
+
+                    <h2>
+                        Resumen de Liquidación
+                    </h2>
+
+                    <p>
+                        Seleccione un archivo PDF correspondiente
+                        a tarjeta de crédito o débito.
+                    </p>
 
                     <input
                         type="file"
                         id="archivoPDF"
-                        name="archivosPDF"
+                        name="archivoPDF"
                         accept=".pdf,application/pdf"
                         multiple
                         required
                     >
 
-                    <button type="submit">
-                        Convertir
+                    <div
+                        id="nombreArchivo"
+                        class="nombre-archivo"
+                    >
+                        Ningún archivo seleccionado
+                    </div>
+
+                </label>
+
+
+                <div class="separador"></div>
+
+
+                <!-- BOTÓN -->
+
+                <div class="acciones">
+
+                    <button
+                        type="button"
+                        id="btnConvertir"
+                        class="boton-principal"
+                    >
+                        Convertir y Descargar Excel
                     </button>
 
-                </form>
+                </div>
+
+            </form>
+
+
+            <!-- SPINNER -->
+
+            <div
+                id="spinner"
+                class="spinner-contenedor oculto"
+            >
+
+                <div class="spinner"></div>
 
             </div>
 
-            <p id="mensaje"></p>
 
-        </div>
+            <!-- ESTADO -->
+
+            <div
+                id="estado"
+                class="estado"
+            ></div>
+
+
+            <!-- INFORMACIÓN DEL PROCESAMIENTO -->
+
+            <section
+                id="resumen"
+                class="informacion oculto"
+            >
+
+                <h3>
+                    Resultado del procesamiento
+                </h3>
+
+                <p>
+                    Tipo de tarjeta:
+                    <strong id="tipoTarjeta">
+                        -
+                    </strong>
+                </p>
+
+                <p>
+                    Archivo procesado:
+                    <strong id="archivoProcesado">
+                        -
+                    </strong>
+                </p>
+
+            </section>
+
+
+        </section>
 
     </main>
-</body>
-<footer>
+
+
+    <!-- PIE DE PÁGINA -->
+
+    <footer>
 
         <img
             class="interredes-logo-alt"
-            src="interredes-logo-alt.png"
+            src="./interredes-logo-alt.png"
             alt="INTERREDES"
         >
-        
-        <script src="script.js"></script>
+
     </footer>
+
+
+    <!-- JAVASCRIPT -->
+
+    <script src="./script.js"></script>
+
+</body>
 
 </html>

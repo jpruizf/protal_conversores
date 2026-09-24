@@ -124,7 +124,6 @@ body {
 
 .zona-archivo:hover {
     background: #fff3eb;
-
     border-color: #cc6228;
 
     transform: translateY(-2px);
@@ -132,7 +131,6 @@ body {
 
 .zona-archivo.arrastrando {
     background: #ffede1;
-
     border-color: #b9511d;
 }
 
@@ -205,6 +203,7 @@ body {
     width: 100%;
 
     display: flex;
+
     justify-content: center;
     align-items: center;
 
@@ -222,6 +221,7 @@ body {
     padding: 12px 24px;
 
     font-family: inherit;
+
     font-size: 17px;
     font-weight: bold;
 
@@ -231,9 +231,7 @@ body {
         background 0.2s ease,
         transform 0.2s ease,
         box-shadow 0.2s ease;
-}
 
-.boton-principal {
     background: #e77834;
 
     color: #ffffff;
@@ -336,6 +334,7 @@ body {
     width: 100%;
 
     display: flex;
+
     justify-content: center;
     align-items: center;
 
@@ -361,9 +360,11 @@ body {
 }
 
 @keyframes girar {
+
     to {
         transform: rotate(360deg);
     }
+
 }
 
 
@@ -401,6 +402,58 @@ body {
     color: #6f6262;
 
     overflow-wrap: anywhere;
+}
+
+
+/* =========================================================
+   LOGOS
+========================================================= */
+
+.logo {
+    display: block;
+
+    max-width: 80%;
+
+    height: auto;
+
+    margin: 0 auto 20px;
+}
+
+.inter-logo {
+    display: block;
+
+    width: 180px;
+    max-width: 60%;
+
+    height: auto;
+
+    margin: 0 auto 20px;
+}
+
+
+/* =========================================================
+   PIE DE PÁGINA
+========================================================= */
+
+footer {
+    display: flex;
+
+    width: 100%;
+
+    padding: max(18px, 8%);
+
+    background-color: #000000;
+
+    margin-top: auto;
+}
+
+.interredes-logo-alt {
+
+    max-width: 180px;
+
+    height: auto;
+
+    margin: 0 auto;
 }
 
 
@@ -444,50 +497,9 @@ body {
     .boton-secundario {
         width: 100%;
     }
+
 }
 
-/* =========================================
-   LOGOS
-   ========================================= */
-.logo {
-    display: block;
-
-    max-width: 80%;
-    height: auto;
-
-    margin: 0 auto 20px;
-}
-
-.inter-logo{
-    display: block;
-
-    width: 180px;
-    max-width: 60%;
-    height: auto;
-
-    margin: 0 auto 20px;
-}
-/* =========================================
-   PIE DE PÁGINA
-   ========================================= */
-
-footer
-{
-    width: 100%;
-    padding: max(18px, 5%);
-    background-color: #000;
-    color: #fff;
-}
-
-.interredes-logo-alt {
-    display: block;
-
-    max-width: 180px;
-
-    height: auto;
-
-    margin: 0 auto;
-}
 
 /* =========================================================
    CELULARES
@@ -549,4 +561,5 @@ footer
     .informacion p {
         font-size: 14px;
     }
+
 }
