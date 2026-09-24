@@ -1,541 +1,379 @@
+const ExcelJS = require("exceljs");
+
+
 /**
- * excelService.js
+ * Genera un Excel resumen con las liquidaciones
+ * extraídas del PDF.
  *
- * Genera la planilla Excel del Informe de Liquidación.
+ * @param {Array} resumenesLiquidaciones
+ * @returns {Promise<Buffer>}
  */
+async function generarExcelLiquidacionTarjetas(
+    resumenesLiquidaciones
+) {
 
-const XLSX = require("xlsx");
-
-
-/* ============================================================
-   UTILIDADES
-============================================================ */
-
-function numeroSeguro(valor) {
-    const numero = Number(valor);
-
-    return Number.isFinite(numero)
-        ? numero
-        : 0;
+    if (
+    !Array.isArray(resumenesLiquidaciones) ||
+    resumenesLiquidaciones.length === 0
+) {
+    throw new Error(
+        "No existen resúmenes de liquidaciones para generar el Excel."
+    );
 }
+
+    /**
+     * Libro Excel.
+     */
+    const workbook =
+        new ExcelJS.Workbook();
+
+
+    /**
+ * Formato monetario.
+ */
+const formatoImporte =
+    '$ #,##0.00;[Red]-$ #,##0.00';
+
 
 /**
- * Mantiene las fechas como texto para evitar que Excel
- * las cambie por diferencia de zona horaria.
+ * Crea una hoja y carga todas
+ * las liquidaciones correspondientes.
  */
-function fechaComoTexto(fecha) {
-    if (!fecha) {
-        return "";
-    }
+function crearHojaResumen(
+    enteRecaudador,
+    tipoTarjeta,
+    liquidaciones,
+    numeroResumen
+) {
+    const nombreHoja=
+     `${enteRecaudador} ${tipoTarjeta} ${numeroResumen}`;
 
-    return String(fecha).trim();
-}
-
-
-/* ============================================================
-   GENERAR EXCEL
-============================================================ */
-
-function generarExcelLiquidacion(resultado) {
-    if (!resultado) {
-        throw new Error(
-            "No se recibieron datos para generar el Excel."
+    const worksheet =
+        workbook.addWorksheet(
+            nombreHoja
         );
-    }
 
-    const cabecera = resultado.cabecera || {};
-    const detalles = Array.isArray(resultado.detalles)
-        ? resultado.detalles
-        : [];
 
-    const cierre = resultado.cierre || {};
-    const controles = resultado.controles || {};
-
-    const filas = [];
-
-    /* ========================================================
-       TÍTULO
-    ======================================================== */
-
-    filas.push([
-        "INFORME DE LIQUIDACIÓN"
-    ]);
-
-    filas.push([]);
-
-
-    /* ========================================================
-       DATOS GENERALES
-    ======================================================== */
-
-    filas.push([
-        "DATOS GENERALES",
-        ""
-    ]);
-
-    filas.push([
-        "Número O.P.",
-        cabecera.numeroOP || ""
-    ]);
-
-    filas.push([
-        "Documento de pago",
-        cabecera.documentoPago || ""
-    ]);
-
-    filas.push([
-        "Fecha de pago",
-        fechaComoTexto(cabecera.fechaPago)
-    ]);
-
-    filas.push([
-        "Número de pagador",
-        cabecera.pagadorNumero || ""
-    ]);
-
-    filas.push([
-        "Pagador",
-        cabecera.pagadorNombre || ""
-    ]);
-
-    filas.push([
-        "CUIT",
-        cabecera.cuit || ""
-    ]);
-
-    filas.push([
-        "Importe depositado",
-        numeroSeguro(
-            cabecera.importeDepositado
-        )
-    ]);
-
-    filas.push([
-        "Medio de pago",
-        cabecera.medioPago || ""
-    ]);
-
-    filas.push([]);
-
-
-    /* ========================================================
-       DETALLE
-    ======================================================== */
-
-    const filaEncabezado = filas.length;
-
-    filas.push([
-        "FECHA",
-        "CANTIDAD DE TRANSACCIONES",
-        "IMPORTE BRUTO",
-        "GASTOS BANCARIOS",
-        "IVA GASTOS BANCARIOS",
-        "FEE",
-        "IVA FEE",
-        "IMPORTE NETO"
-    ]);
-
-    const filaInicioDetalle = filas.length;
-
-    detalles.forEach((detalle) => {
-        filas.push([
-            fechaComoTexto(
-                detalle.fecha
-            ),
-
-            /*
-             * IMPORTANTE:
-             * El parser utiliza cantidadTransacciones.
-             */
-            numeroSeguro(
-                detalle.cantidadTransacciones
-            ),
-
-            numeroSeguro(
-                detalle.importeBruto
-            ),
-
-            numeroSeguro(
-                detalle.gastosBancarios
-            ),
-
-            numeroSeguro(
-                detalle.ivaGastosBancarios
-            ),
-
-            numeroSeguro(
-                detalle.fee
-            ),
-
-            numeroSeguro(
-                detalle.ivaFee
-            ),
-            numeroSeguro(
-                detalle.importeNeto
-            )
-        ]);
-    });
-
-    const filaFinDetalle = filas.length - 1;
-
-
-    /* ========================================================
-       FILA DE TOTALES
-    ======================================================== */
-
-    const filaTotales = filas.length;
-
-    filas.push([
-    "TOTAL GENERAL",
-
-    numeroSeguro(
-        controles.totalCantidadTransacciones
-    ),
-
-    numeroSeguro(
-        controles.totalImporteBruto
-    ),
-
-    numeroSeguro(
-        controles.totalGastosBancarios
-    ),
-
-    numeroSeguro(
-        controles.totalIvaGastosBancarios
-    ),
-
-    numeroSeguro(
-        controles.totalFee
-    ),
-
-    numeroSeguro(
-        controles.totalIvaFee
-    ),
-
-    numeroSeguro(
-        controles.totalImporteNeto
-    )
-]);
-
-    filas.push([]);
-
-
-    /* ========================================================
-       CIERRE DEL INFORME
-    ======================================================== */
-
-    const filaTituloCierre = filas.length;
-
-    filas.push([
-        "CIERRE DEL INFORME",
-        ""
-    ]);
-
-    const filaInicioCierre = filas.length;
-
-    filas.push([
-    "Total CYBA",
-        numeroSeguro(
-        cierre.totalCYBA)
-    ]);
-
-    filas.push([
-        "Total INTE",
-    numeroSeguro(
-        cierre.totalINTE)
-    ]);
-
-filas.push([
-        "Ajuste RT",
-    numeroSeguro(
-        cierre.ajusteRT)
-    ]);
-
-    filas.push([
-        "Retención IB / SIRTAC",
-    numeroSeguro(
-        cierre.retencionIB)
-    ]);
-
-    filas.push([
-        "Total a depositar",
-    numeroSeguro(
-        cierre.totalDepositar)
-    ]);
-
-    const filaFinCierre = filas.length - 1;
-
-
-    /* ========================================================
-       CREAR HOJA
-    ======================================================== */
-
-    const hoja =
-        XLSX.utils.aoa_to_sheet(filas);
-
-
-    /* ========================================================
-       FECHAS COMO TEXTO
-    ======================================================== */
-
-    for (
-        let fila = filaInicioDetalle;
-        fila <= filaFinDetalle;
-        fila++
-    ) {
-        const referencia =
-            XLSX.utils.encode_cell({
-                r: fila,
-                c: 0
-            });
-
-        if (hoja[referencia]) {
-            hoja[referencia].t = "s";
-        }
-    }
-
-
-    /* ========================================================
-       CANTIDAD COMO NÚMERO
-    ======================================================== */
-
-    for (
-        let fila = filaInicioDetalle;
-        fila <= filaFinDetalle;
-        fila++
-    ) {
-        const referencia =
-            XLSX.utils.encode_cell({
-                r: fila,
-                c: 1
-            });
-
-        if (hoja[referencia]) {
-            hoja[referencia].t = "n";
-            hoja[referencia].z = "0";
-        }
-    }
-
-    const celdaCantidadTotal =
-        XLSX.utils.encode_cell({
-            r: filaTotales,
-            c: 1
-        });
-
-    if (hoja[celdaCantidadTotal]) {
-        hoja[celdaCantidadTotal].t = "n";
-        hoja[celdaCantidadTotal].z = "0";
-    }
-
-
-    /* ========================================================
-       FORMATO MONETARIO DEL DETALLE
-    ======================================================== */
-
-    for (
-        let fila = filaInicioDetalle;
-        fila <= filaTotales;
-        fila++
-    ) {
-        for (
-            let columna = 2;
-            columna <= 7;
-            columna++
-        ) {
-            const referencia =
-                XLSX.utils.encode_cell({
-                    r: fila,
-                    c: columna
-                });
-
-            const celda = hoja[referencia];
-
-            if (
-                celda &&
-                typeof celda.v === "number"
-            ) {
-                celda.t = "n";
-                celda.z =
-                    '$ #,##0.00;[Red]-$ #,##0.00';
-            }
-        }
-    }
-
-
-    /* ========================================================
-       FORMATO MONETARIO DE CABECERA
-    ======================================================== */
-
-    /*
-     * Importe depositado:
-     * fila 9 de Excel, índice 8.
+    /**
+     * Configuración de la hoja.
      */
-    const celdaImporteDepositado =
-        hoja["B9"];
-
-    if (
-        celdaImporteDepositado &&
-        typeof celdaImporteDepositado.v ===
-            "number"
-    ) {
-        celdaImporteDepositado.t = "n";
-        celdaImporteDepositado.z =
-            '$ #,##0.00;[Red]-$ #,##0.00';
-    }
-
-
-    /* ========================================================
-       FORMATO MONETARIO DEL CIERRE
-    ======================================================== */
-
-    for (
-        let fila = filaInicioCierre;
-        fila <= filaFinCierre;
-        fila++
-    ) {
-        const referencia =
-            XLSX.utils.encode_cell({
-                r: fila,
-                c: 1
-            });
-
-        const celda = hoja[referencia];
-
-        if (
-            celda &&
-            typeof celda.v === "number"
-        ) {
-            celda.t = "n";
-            celda.z =
-                '$ #,##0.00;[Red]-$ #,##0.00';
-        }
-    }
-
-
-    /* ========================================================
-       ANCHOS DE COLUMNAS
-    ======================================================== */
-
-    hoja["!cols"] = [
-        { wch: 14 },
-        { wch: 25 },
-        { wch: 20 },
-        { wch: 22 },
-        { wch: 24 },
-        { wch: 18 },
-        { wch: 18 },
-        { wch: 20 }
-    ];
-
-
-    /* ========================================================
-       COMBINACIONES
-    ======================================================== */
-
-    hoja["!merges"] = [
+    worksheet.views = [
         {
-            s: {
-                r: 0,
-                c: 0
-            },
-            e: {
-                r: 0,
-                c: 7
-            }
-        },
-
-        {
-            s: {
-                r: 2,
-                c: 0
-            },
-            e: {
-                r: 2,
-                c: 1
-            }
-        },
-
-        {
-            s: {
-                r: filaTituloCierre,
-                c: 0
-            },
-            e: {
-                r: filaTituloCierre,
-                c: 1
-            }
+            state: "frozen",
+            ySplit: 1,
+            showGridLines: false
         }
     ];
 
 
-    /* ========================================================
-       FILTRO
-    ======================================================== */
-
-    if (
-        filaFinDetalle >=
-        filaInicioDetalle
-    ) {
-        hoja["!autofilter"] = {
-            ref:
-                XLSX.utils.encode_range({
-                    s: {
-                        r: filaEncabezado,
-                        c: 0
-                    },
-                    e: {
-                        r: filaFinDetalle,
-                        c: 7
-                    }
-                })
-        };
-    }
+    /**
+     * Anchos de columnas.
+     */
+    worksheet.columns = [
+        {
+            key: "concepto",
+            width: 48
+        },
+        {
+            key: "importe",
+            width: 20
+        }
+    ];
 
 
-    /* ========================================================
-       CREAR LIBRO
-    ======================================================== */
-
-    const libro =
-        XLSX.utils.book_new();
-
-    XLSX.utils.book_append_sheet(
-        libro,
-        hoja,
-        "Liquidación"
+    /**
+     * Título principal.
+     */
+    worksheet.mergeCells(
+        "A1:B1"
     );
 
-    libro.Props = {
-        Title:
-            "Informe de Liquidación",
 
-        Subject:
-            "Conversión TXT a Excel",
+    const titulo =
+        worksheet.getCell("A1");
 
-        Author:
-            "INTERREDES",
 
-        Company:
-            "INTERREDES"
+    titulo.value =
+        `RESUMEN LIQUIDACIÓN ${enteRecaudador} - ${tipoTarjeta}`;
+
+
+    titulo.font = {
+        name: "Segoe UI",
+        size: 14,
+        bold: true
     };
 
 
-    /* ========================================================
-       DEVOLVER BUFFER
-    ======================================================== */
+    titulo.alignment = {
+        horizontal: "center",
+        vertical: "middle"
+    };
 
-    return XLSX.write(libro, {
-        type: "buffer",
-        bookType: "xlsx",
-        compression: true
-    });
+
+    worksheet.getRow(1).height = 28;
+
+
+    /**
+     * Comenzamos después del título.
+     */
+    let filaActual = 3;
+
+
+    /**
+     * Cada liquidación se apila
+     * verticalmente.
+     */
+    liquidaciones.forEach(
+        (liquidacion) => {
+
+            /**
+             * Encabezado de liquidación.
+             */
+            worksheet.mergeCells(
+                `A${filaActual}:B${filaActual}`
+            );
+
+
+            const encabezado =
+                worksheet.getCell(
+                    `A${filaActual}`
+                );
+
+
+            encabezado.value =
+                `LIQUIDACIÓN ${liquidacion.numeroLiquidacion}`;
+
+
+            encabezado.font = {
+                name: "Segoe UI",
+                size: 11,
+                bold: true
+            };
+
+
+            encabezado.alignment = {
+                horizontal: "left"
+            };
+
+
+            filaActual++;
+
+
+            /**
+             * Campos del resumen.
+             */
+            const campos = [
+
+                {
+                    concepto:
+                        "VENTAS C/DESCUENTO CONTADO",
+
+                    valor:
+                        liquidacion
+                            .ventasDescuentoContado
+                },
+
+                {
+                    concepto:
+                        "ARANCEL",
+
+                    valor:
+                        liquidacion.arancel
+                },
+
+                {
+                    concepto:
+                        "IVA CRED.FISC.COMERCIO S/ARANC 21,00%",
+
+                    valor:
+                        liquidacion.ivaArancel
+                },
+
+                {
+                    concepto:
+                        "RETENCION ING.BRUTOS SIRTAC",
+
+                    valor:
+                        liquidacion.retencionSirtac
+                },
+
+                {
+                    concepto:
+                        "PERCEPCION IVA R.G. 2408 3,00 %",
+
+                    valor:
+                        liquidacion.percepcionIva
+                },
+
+                {
+                    concepto:
+                        "IMPORTE NETO DE PAGOS",
+
+                    valor:
+                        liquidacion.importeNetoPagos
+                }
+
+            ];
+
+
+            campos.forEach(
+                (campo) => {
+
+                    const celdaConcepto =
+                        worksheet.getCell(
+                            `A${filaActual}`
+                        );
+
+
+                    const celdaImporte =
+                        worksheet.getCell(
+                            `B${filaActual}`
+                        );
+
+
+                    celdaConcepto.value =
+                        campo.concepto;
+
+
+                    celdaImporte.value =
+                        campo.valor;
+
+
+                    celdaImporte.numFmt =
+                        formatoImporte;
+
+
+                    celdaConcepto.font = {
+                        name: "Segoe UI",
+                        size: 10
+                    };
+
+
+                    celdaImporte.font = {
+                        name: "Segoe UI",
+                        size: 10
+                    };
+
+
+                    celdaImporte.alignment = {
+                        horizontal: "right"
+                    };
+
+
+                    /**
+                     * Destacamos el Neto.
+                     */
+                    if (
+                        campo.concepto ===
+                        "IMPORTE NETO DE PAGOS"
+                    ) {
+
+                        celdaConcepto.font = {
+                            name: "Segoe UI",
+                            size: 10,
+                            bold: true
+                        };
+
+
+                        celdaImporte.font = {
+                            name: "Segoe UI",
+                            size: 10,
+                            bold: true
+                        };
+
+
+                        celdaConcepto.border = {
+                            top: {
+                                style: "thin"
+                            }
+                        };
+
+
+                        celdaImporte.border = {
+                            top: {
+                                style: "thin"
+                            }
+                        };
+                    }
+
+
+                    filaActual++;
+                }
+            );
+
+
+            /**
+             * Espacio entre liquidaciones.
+             */
+            filaActual++;
+        }
+    );
+}
+
+let cantidadHojas = 0;
+
+const contadorResumenes = {};
+
+
+for (
+    const resumen
+    of resumenesLiquidaciones
+) {
+
+    const {
+        enteRecaudador,
+        tipoTarjeta,
+        liquidaciones
+    } = resumen;
+
+
+    const clave =
+        `${enteRecaudador}_${tipoTarjeta}`;
+
+
+    if (
+        !contadorResumenes[clave]
+    ) {
+        contadorResumenes[clave] = 0;
+    }
+
+
+    contadorResumenes[clave]++;
+
+
+    const numeroResumen =
+        contadorResumenes[clave];
+
+
+    crearHojaResumen(
+        enteRecaudador,
+        tipoTarjeta,
+        liquidaciones,
+        numeroResumen
+    );
+    cantidadHojas++;
 }
 
 
-/* ============================================================
-   EXPORTACIÓN
-============================================================ */
+if (
+    cantidadHojas === 0
+) {
+    throw new Error(
+        "No existen liquidaciones para generar el Excel."
+    );
+}
+
+    /**
+     * Genera el archivo en memoria.
+     */
+    const buffer =
+        await workbook.xlsx.writeBuffer();
+
+
+    return buffer;
+}
+
 
 module.exports = {
-    generarExcelLiquidacion
+    generarExcelLiquidacionTarjetas
 };
