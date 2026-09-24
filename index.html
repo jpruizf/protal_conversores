@@ -2,112 +2,47 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="./logo.png" type="image/png">
     <title>Conversor TXT a Excel</title>
-
-    <link rel="stylesheet" href="./css/style.css">
-    <link rel="icon" href="./img/logo.png" type="image/png">
-    <!-- Librería para generar archivos Excel -->
-    <script src="./libs/xlsx.full.min.js"></script>
-
-    <!-- Script principal del conversor -->
-    <script type="module" src="./js/app.js" defer></script>
 </head>
 
 <body>
-    <header class="encabezado-principal">
-        <img
-            src="./img/Logo tipo.jpg"
-            alt="Logo de INTERREDES"
-            class="logo-principal"
-        >
-    </header>
-
-    <main class="contenedor-principal">
-        <section class="tarjeta-conversor">
-            <header class="titulo-conversor">
-                <h1>Conversor de Resumen de liquidación</h1>
-            </header>
-
-            <div
-                id="drop-zone"
-                class="zona-carga"
-                role="button"
-                tabindex="0"
-                aria-label="Seleccionar o arrastrar un archivo TXT"
-            >
-                <input
-                    type="file"
-                    id="file-input"
-                    accept=".txt,text/plain"
-                    hidden
-                >
-
-                <div class="contenido-carga">
-                    <span class="icono-archivo" aria-hidden="true">📄</span>
-
-                    <p>
-                        Arrastrá tu archivo TXT aquí o
-                        <span class="texto-buscar">buscalo en tu equipo</span>
-                    </p>
-                </div>
+    <main>
+        <img class="logo-principal" src="./Logo tipo.jpg" alt="logo-interredes">
+        <div class="container">
+            <h1>Conversor TXT a Excel</h1>
+            <h4>(REPORTES PAGO FACIL)</h4>
+            <div class="conversor-box">
+                <form id="formulario" action="./convertir" method="POST" enctype="multipart/form-data">
+                    <input type="file" id="archivoTXT" name="archivoTXT" accept=".txt" required>
+                    <button type="submit">Convertir</button>
+                </form>
             </div>
-            <button id="convert-button"
-                class="boton-convertir"
-                type="button"
-                disabled>
-                Convertir a Excel
-            </button>
-            <div
-                id="status-container"
-                class="contenedor-estado oculto"
-                aria-live="polite"
-            >
-                <div id="status-message" class="mensaje-estado"></div>
-            </div>
-        </section>
+            <p id="mensaje"></p>
+            <button id="btnDescargar" type="button" style="display: none;"> Descargar archivo convertido </button>  
+        </div>    
     </main>
-
-    <footer class="pie-pagina">
-        <div class="pie-contenido">
-            <img
-                src="./img/interredes-logo-alt.png"
-                alt="Logo alternativo de INTERREDES"
-                class="logo-pie"
-            >
-        <!---
-            <div class="informacion-pie">
-                <section>
-                    <h2>Direcciones</h2>
-
-                    <address>
-                        <p>Av. Córdoba 1375 (O) - Capital</p>
-                        <p>Rivadavia 182 (O) - Capital</p>
-                        <p>Sarmiento 702 esq. Rivadavia - Jáchal</p>
-                        <p>Av. Santo Domingo s/n - Iglesia</p>
-                    </address>
-                </section>
-
-                <section>
-                    <h2>Contacto</h2>
-
-                    <ul>
-                        <li>WhatsApp: 264 417 0123</li>
-                        <li>Ventas y Soporte Técnico: 466 5050</li>
-                        <li>Ventas y Soporte Técnico: 264 488 2850</li>
-                        <li>Oficina Jáchal: 264 439 1403</li>
-                        <li>Oficina Iglesia</li>
-                    </ul>
-                </section>
-            </div>
-        -->    
-            
-        </div>
-    </footer>
 </body>
+<footer>
+    <script src="script.js"></script>
+    <img class="logo" src="interredes-logo-alt.png" alt="interredes">
+    <!--
+         <p>
+        Direcciones
+        Av. Córdoba 1375 (O) - Capital
+        Rivadavia 182 (O) - Capital
+        Sarmiento 702 esq. Rivadavia - Jáchal
+        Av. Santo Domingo s/n - Iglesia
+
+        Contacto
+        264 417 0123 - WhatsApp - 
+        Ventas y Soporte Técnico 466 5050 - 
+        Ventas y Soporte Técnico 264 488 2850 - 
+        Oficina Jachal 264 439 1403 - 
+        Oficina Iglesia
+    </p>
+    -->
+   
+</footer>
 </html>
